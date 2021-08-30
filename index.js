@@ -10,6 +10,7 @@ const parse = util.promisify(require('csv-parse'))
 const _ = require('underscore')
 const extractDomain = require('extract-domain')
 const fetch = require('./fetch').fetch
+const getCountry = require('./lookup').country
 
 const serial = (funcs, ws) =>
   funcs.reduce((promise, func, i) => {
@@ -24,7 +25,15 @@ const serial = (funcs, ws) =>
   , Promise.resolve([]))
 
 const mock = (url) => {
-  return fetch(url)
+  return getCountry(url)
+  .then(x=> {
+    _x = x;
+    return fetch(url)
+  })
+  .then(y=> {
+    let res = {..._x, ...y}
+    return Promise.resolve(res)
+  })
 }
 
 const wss = new WebSocketServer({ port: 8080 })
