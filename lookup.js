@@ -18,7 +18,7 @@ exports.country = (domain) => {
       .then((ip) => {
         axios.get('http://www.iplocate.io/api/lookup/' + ip)
           .then((x) => {
-            resolve(x.data.country)
+            resolve({ country: x.data.country })
           })
           .catch(e => reject(e))
       })

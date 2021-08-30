@@ -9,7 +9,7 @@ const WebSocketServer = require('ws').WebSocketServer
 const parse = util.promisify(require('csv-parse'))
 const _ = require('underscore')
 const extractDomain = require('extract-domain')
-const getCountry = require('./lookup').country
+const fetch = require('./fetch').fetch
 
 const serial = (funcs, ws) =>
   funcs.reduce((promise, func, i) => {
@@ -24,7 +24,7 @@ const serial = (funcs, ws) =>
   , Promise.resolve([]))
 
 const mock = (url) => {
-  return getCountry(url)
+  return fetch(url)
 }
 
 const wss = new WebSocketServer({ port: 8080 })
