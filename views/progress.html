@@ -1,0 +1,56 @@
+<html>
+  <head>
+    <style>
+      #left {width:50%}
+      #right {width:50%;text-align:right;}
+      #labels {display:flex;}
+      #progressBar {
+        width:80%;
+        border: solid 1px grey;
+        height:20px;
+      }
+      #complete {
+        width:0%;
+        background-color:green;
+        height:inherit;
+      }
+    </style>
+  </head>
+  <body>
+  Progress
+  <div id='progressBar'>
+    <div id='complete'></div>
+    <div id='labels'>
+      <div id='left'>0</div>
+      <div id='right'></div>
+    </div>
+  </div>
+  <script>
+    var total = 0;
+    console.log('progress page loaded');
+    const ws = new WebSocket("ws://localhost:8080");
+    ws.addEventListener('open', () => {ws.send("Hello server!");});
+    ws.addEventListener('message', (event) => {
+      console.log(event.data)
+      let h = JSON.parse(event.data);
+      switch (h.type) {
+        case 'message':
+          console.log(h.data);
+          break;
+        case 'total':
+          total = h.data;
+          document.getElementById('right').innerHTML = total;
+          break;
+        case 'index':
+          let elem = document.getElementById('complete'); 
+          let width = (100*h.data/total).toFixed(0) + '%';
+          elem.style.width = width;
+          break;
+        case 'finish':
+          document.getElementById('complete').style.width = '100%';
+          break;
+      }
+    });
+  </script>
+  </body>
+</html>

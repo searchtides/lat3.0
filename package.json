@@ -1,0 +1,28 @@
+{
+  "name": "lat3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "eslint": "node_modules/.bin/eslint "
+  },
+  "author": "yyk@mail.ru",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "csv-parse": "^4.16.2",
+    "express": "^4.17.1",
+    "express-fileupload": "^1.2.1",
+    "extract-domain": "^2.3.4",
+    "underscore": "^1.13.1",
+    "ws": "^8.2.1"
+  },
+  "devDependencies": {
+    "eslint": "^7.32.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.24.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.1.0"
+  }
+}
