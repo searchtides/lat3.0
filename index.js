@@ -25,15 +25,16 @@ const serial = (funcs, ws) =>
   , Promise.resolve([]))
 
 const mock = (url) => {
+  let _x
   return getCountry(url)
-  .then(x=> {
-    _x = x;
-    return fetch(url)
-  })
-  .then(y=> {
-    let res = {..._x, ...y}
-    return Promise.resolve(res)
-  })
+    .then(x => {
+      _x = x
+      return fetch(url)
+    })
+    .then(y => {
+      const res = { ..._x, ...y }
+      return Promise.resolve(res)
+    })
 }
 
 const wss = new WebSocketServer({ port: 8080 })
