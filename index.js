@@ -11,6 +11,8 @@ const _ = require('underscore')
 const extractDomain = require('extract-domain')
 const fetch = require('./fetch').fetch
 const getCountry = require('./lookup').country
+const download = require('./download').evaluated_content
+const english = require('./lookup').english
 
 const serial = (funcs, ws) =>
   funcs.reduce((promise, func, i) => {
@@ -25,14 +27,18 @@ const serial = (funcs, ws) =>
   , Promise.resolve([]))
 
 const mock = (url) => {
-  let _x
+  let _x, eng
   return getCountry(url)
     .then(x => {
       _x = x
+      return download('http://' + url, path.join('./downloads', url + '.html'))
+    })
+    .then(html => {
+      eng = { eng: english(html) }
       return fetch(url)
     })
     .then(y => {
-      const res = { ..._x, ...y }
+      const res = { ..._x, ...y, ...eng }
       return Promise.resolve(res)
     })
 }

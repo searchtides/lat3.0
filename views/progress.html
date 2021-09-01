@@ -49,9 +49,9 @@
           break;
         case 'finish':
           document.getElementById('complete').style.width = '100%';
-          let headers = ['Domain', 'Country', 'Dr', 'Traffic', 'US traffic, %'].map(x=>'<th>' + x + '</th>').join('')
+          let headers = ['Domain', 'Country', 'Dr', 'Traffic', 'US traffic, %', 'eng'].map(x=>'<th>' + x + '</th>').join('')
           let res = h.data
-          let m = res.map(r=>[r[0], r[1].country, r[1].dr, r[1].tr, r[1].us_tr])
+          let m = res.map(r=>[r[0], r[1].country, r[1].dr, r[1].tr, r[1].us_tr, r[1].eng.toFixed(1)])
           let tbody = m.map(r=>"<tr>" + r.map(c=>"<td>" + c + "</td>").join('') + "</tr>").join('')
           document.getElementById('res').innerHTML ="<table>" + headers +  tbody + "</table>"
                   break;
