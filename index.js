@@ -13,7 +13,9 @@ const fetch = require('./fetch').fetch
 const getCountry = require('./lookup').country
 const download = require('./download').evaluated_content
 const english = require('./lookup').english
+const totalResults = require('./serp').totalResults
 
+const externalAuthor = txt => /write\s+.*\s+us|guest post/i.test(txt)
 const serial = (funcs, ws) =>
   funcs.reduce((promise, func, i) => {
     return promise.then(result => {
@@ -27,7 +29,7 @@ const serial = (funcs, ws) =>
   , Promise.resolve([]))
 
 const mock = (url) => {
-  let _x, eng
+  let _x, _y, eng, writeToUs, redFlags
   return getCountry(url)
     .then(x => {
       _x = x
@@ -35,10 +37,18 @@ const mock = (url) => {
     })
     .then(html => {
       eng = { eng: english(html) }
+      writeToUs = externalAuthor(html)
       return fetch(url)
     })
     .then(y => {
-      const res = { ..._x, ...y, ...eng }
+      _y = y
+      return totalResults(url, 'viagra')
+        .then(n => Promise.resolve(n))
+        .catch(e => Promise.resolve(e))
+    })
+    .then(z => {
+      redFlags = { writeToUs, spam: z }
+      const res = { ..._x, ..._y, ...eng, ...redFlags }
       return Promise.resolve(res)
     })
 }
