@@ -1,0 +1,19 @@
+html
+  head
+    style.
+      #clientId {
+       display:none;
+      }
+    title= "Updating client settings"
+  h1 Client: #{clientName}
+  form(action='http://localhost:3000/updating_settings', method='POST' enctype="multipart/form-data")
+    input(id='clientId' name='clientId' value=clientId)
+    div Spam keywords
+    textarea(id='spam' name='spam' cols=40 rows=10) #{spam}
+    div Keywords
+    textarea(id='keywords' name='keywords' cols=40 rows=10) #{keywords}
+    div DR settings
+    textarea(id='drSettings' name='drSettings' cols=40 rows=10) #{drSettings}
+    div
+    a(href="http://localhost:3000/start") Cancel 
+    input(type='submit', value='Submit')

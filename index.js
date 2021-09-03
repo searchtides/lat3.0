@@ -14,6 +14,8 @@ const getCountry = require('./lookup').country
 const download = require('./download').evaluated_content
 const english = require('./lookup').english
 const totalResults = require('./serp').totalResults
+const { v4: uuidv4 } = require('uuid')
+const clientsMapPath = 'db/clients_map.json'
 
 const externalAuthor = txt => /write\s+.*\s+us|guest post/i.test(txt)
 const serial = (funcs, ws) =>
@@ -82,9 +84,96 @@ wss.on('connection', (ws) => {
 })
 
 app.use(fileUpload())
+app.set('view engine', 'pug')
+app.set('views', './views')
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, './views/index.html'))
+})
+
+app.post('/process', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views/progress.html'))
+})
+
+app.get('/settings_updated', (req, res) => {
+  res.render('settings_updated')
+})
+
+const trim = x => x.trim()
+app.post('/updating_settings', (req, res) => {
+  let { clientId, spam, keywords, drSettings } = req.body
+  spam = spam.replace(/[\n|\r|]/g, ',').split(',').map(trim).filter(x => x)
+  keywords = keywords.replace(/[\n|\r|,\s+]/g, ',').split(',').map(trim).filter(x => x)
+  drSettings = _.object(drSettings.split('\n').map(x => x.split('=').map(trim)))
+  const clientsMap = JSON.parse(fs.readFileSync(clientsMapPath, 'utf8'))
+  const { blackList, clientName } = clientsMap[clientId]
+  clientsMap[clientId] = { clientName, spam, keywords, drSettings, blackList }
+  fs.writeFileSync(clientsMapPath, JSON.stringify(clientsMap))
+  res.redirect('/settings_updated')
+})
+
+app.get('/update_settings', (req, res) => {
+  res.render('update_settings')
+})
+
+app.get('/client_exists', (req, res) => {
+  res.render('client_exists')
+})
+
+app.post('/client_added', (req, res) => {
+  const clientName = req.body.clientName
+  let clientsMap = {}
+  const emptyRecord = { clientName, spam: [], keywords: [], blackList: [], drSettings: {} }
+  fs.readFile(clientsMapPath, 'utf8', (err, data) => {
+    const id = uuidv4()
+    if (err) {
+      clientsMap[id] = emptyRecord
+      fs.writeFileSync(clientsMapPath, JSON.stringify(clientsMap))
+      res.redirect('/start')
+    } else {
+      clientsMap = JSON.parse(data)
+      const names = Object.keys(clientsMap).map(id => clientsMap[id].clientName)
+      if (names.indexOf(clientName) > -1) {
+        // client with such name already exists
+        res.redirect('/client_exists')
+      } else {
+        clientsMap[id] = emptyRecord
+        fs.writeFileSync(clientsMapPath, JSON.stringify(clientsMap))
+        res.redirect('/start')
+      }
+    }
+  })
+})
+
+app.get('/add_client', (req, res) => {
+  res.render('add_client')
+})
+
+app.get('/start', (req, res) => {
+  fs.readFile(clientsMapPath, 'utf8', (err, data) => {
+    if (err) {
+      res.send('No clients found. You should add at least one')
+    } else {
+      const clientsMap = JSON.parse(data)
+      const opts = Object.keys(clientsMap).map(id => { return { id, name: clientsMap[id].clientName } })
+      res.render('client_selection', { xs: opts })
+    }
+  })
+})
+
+app.post('/second_step', (req, res) => {
+  const clientId = req.body.clientId
+  const clientsMap = JSON.parse(fs.readFileSync(clientsMapPath, 'utf8'))
+  const opts = { ...{ clientId }, ...clientsMap[clientId] }
+  if (req.body.action === 'upload') {
+    res.render('load_form', opts)
+  }
+  if (req.body.action === 'update') {
+    opts.spam = opts.spam.join('\n')
+    opts.keywords = opts.keywords.join('\n')
+    opts.drSettings = _.pairs(opts.drSettings).map(pair => pair[0] + '=' + pair[1]).join('\n')
+    res.render('update_settings', opts)
+  }
 })
 
 app.post('/load_file', (req, res) => {

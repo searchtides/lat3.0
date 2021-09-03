@@ -1,0 +1,18 @@
+html
+  head
+    title= "Selecting client"
+    h1= "Select client:"
+  form(action='http://localhost:3000/second_step', method='POST' enctype="multipart/form-data")
+    select(id="client" name="clientId")
+      each x in xs
+        option(value=x.id) #{x.name}
+    p
+    div#action
+      div
+        input(type='radio', name='action', value='upload' checked='true' )#upload
+        label(for='upload') Upload file
+      div
+        input(type='radio', name='action', value='update')#update
+        label(for='update') Update settings
+    p
+    input(type='submit', value='Submit')

@@ -1,0 +1,8 @@
+html
+  head
+    title= "Adding user"
+  body
+    h1= "Enter client name"
+    form(action='http://localhost:3000/client_added', method='POST' enctype="multipart/form-data")
+      input(id="clientName" name="clientName")
+      input(type='submit', value='Submit')
