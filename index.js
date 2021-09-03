@@ -91,7 +91,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, './views/index.html'))
 })
 
-app.post('/process', (req, res) => {
+app.get('/process', (req, res) => {
   res.sendFile(path.join(__dirname, 'views/progress.html'))
 })
 
@@ -180,13 +180,30 @@ app.post('/load_file', (req, res) => {
   if (!req.files || Object.keys(req.files).length === 0) {
     return res.status(400).send('No files were uploaded.')
   }
+  const clientId = req.body.clientId
+  const clientsMap = JSON.parse(fs.readFileSync(clientsMapPath, 'utf8'))
   // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
   const sampleFile = req.files.myfile
   uploadPath = path.join(__dirname, '/uploads/', sampleFile.name)
   // Use the mv() method to place the file somewhere on your server
   sampleFile.mv(uploadPath, function (err) {
     if (err) return res.status(500).send(err)
-    res.sendFile(path.join(__dirname, './views//progress.html'))
+    const text = fs.readFileSync(uploadPath, { encoding: 'utf8', flag: 'r' })
+    parse(text).then(xs => {
+      const headers = xs.shift().map(x => x.toLowerCase())
+      const idx = headers.indexOf('url')
+      if (idx > -1) {
+        const urls = _.unique(xs.map(x => extractDomain(x[idx])))
+        const blackList = clientsMap[clientId].blackList
+        const blackMap = _.object(blackList, blackList)
+        const whiteList = urls.filter(url => blackMap[url] === undefined)
+        const task = { ...{ clientId }, ...clientsMap[clientId], ...whiteList }
+        fs.writeFileSync('db/task.json', JSON.stringify(task))
+        res.redirect('/process')
+      } else {
+        // TODO show error message
+      }
+    })
   })
 })
 
