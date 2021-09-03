@@ -5,3 +5,4 @@ test*
 /uploads/*.*
 /downloads/*.*
 cookies.json
+/db/*.*
