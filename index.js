@@ -66,20 +66,12 @@ wss.on('connection', (ws) => {
     const message = buffer.toString()
     ws.send(js({ type: 'message', data: message }))
   })
-  const text = fs.readFileSync(uploadPath, { encoding: 'utf8', flag: 'r' })
-  parse(text).then(xs => {
-    const headers = xs.shift().map(x => x.toLowerCase())
-    const idx = headers.indexOf('url')
-    if (idx > -1) {
-      const urls = _.unique(xs.map(x => extractDomain(x[idx])))
-      _ws.send(js({ type: 'total', data: urls.length }))
-      const funcs = urls.map(url => () => mock(url))
-      serial(funcs, ws).then((result) => {
-        ws.send(js({ type: 'finish', data: _.zip(urls, result) }))
-      })
-    } else {
-      // TODO show error message
-    }
+  const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
+  const urls = task.whiteList
+  _ws.send(js({ type: 'total', data: urls.length }))
+  const funcs = urls.map(url => () => mock(url))
+  serial(funcs, ws).then((result) => {
+    ws.send(js({ type: 'finish', data: _.zip(urls, result) }))
   })
 })
 
@@ -197,7 +189,7 @@ app.post('/load_file', (req, res) => {
         const blackList = clientsMap[clientId].blackList
         const blackMap = _.object(blackList, blackList)
         const whiteList = urls.filter(url => blackMap[url] === undefined)
-        const task = { ...{ clientId }, ...clientsMap[clientId], ...whiteList }
+        const task = { ...{ clientId }, ...clientsMap[clientId], ...{ whiteList } }
         fs.writeFileSync('db/task.json', JSON.stringify(task))
         res.redirect('/process')
       } else {
