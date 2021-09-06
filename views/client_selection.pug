@@ -6,6 +6,7 @@ html
     select(id="client" name="clientId")
       each x in xs
         option(value=x.id) #{x.name}
+    a(href="http://localhost:3000/add_client") Add client
     p
     div#action
       div
