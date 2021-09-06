@@ -9,51 +9,9 @@ const WebSocketServer = require('ws').WebSocketServer
 const parse = util.promisify(require('csv-parse'))
 const _ = require('underscore')
 const extractDomain = require('extract-domain')
-const fetch = require('./fetch').fetch
-const getCountry = require('./lookup').country
-const download = require('./download').evaluated_content
-const english = require('./lookup').english
-const totalResults = require('./serp').totalResults
 const { v4: uuidv4 } = require('uuid')
+const process = require('./process').batch
 const clientsMapPath = 'db/clients_map.json'
-
-const externalAuthor = txt => /write\s+.*\s+us|guest post/i.test(txt)
-const serial = (funcs, ws) =>
-  funcs.reduce((promise, func, i) => {
-    return promise.then(result => {
-      ws.send(JSON.stringify({ type: 'index', data: i }))
-      return func()
-        .then(Array.prototype.concat.bind(result))
-        .catch(Array.prototype.concat.bind(result))
-    }
-    )
-  }
-  , Promise.resolve([]))
-
-const mock = (url) => {
-  let _x, _y, eng, writeToUs, redFlags
-  return getCountry(url)
-    .then(x => {
-      _x = x
-      return download('http://' + url, path.join('./downloads', url + '.html'))
-    })
-    .then(html => {
-      eng = { eng: english(html) }
-      writeToUs = externalAuthor(html)
-      return fetch(url)
-    })
-    .then(y => {
-      _y = y
-      return totalResults(url, 'viagra')
-        .then(n => Promise.resolve(n))
-        .catch(e => Promise.resolve(e))
-    })
-    .then(z => {
-      redFlags = { writeToUs, spam: z }
-      const res = { ..._x, ..._y, ...eng, ...redFlags }
-      return Promise.resolve(res)
-    })
-}
 
 const wss = new WebSocketServer({ port: 8080 })
 
@@ -68,11 +26,13 @@ wss.on('connection', (ws) => {
   })
   const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
   const urls = task.whiteList
+  const clientsMap = JSON.parse(fs.readFileSync(clientsMapPath, 'utf8'))
   _ws.send(js({ type: 'total', data: urls.length }))
-  const funcs = urls.map(url => () => mock(url))
-  serial(funcs, ws).then((result) => {
-    ws.send(js({ type: 'finish', data: _.zip(urls, result) }))
-  })
+  process(task, clientsMap)
+    .then((result) => {
+      ws.send(js({ type: 'finish', data: result }))
+      fs.writeFileSync('db/result.json', JSON.stringify(result))
+    })
 })
 
 app.use(fileUpload())
@@ -81,6 +41,10 @@ app.set('views', './views')
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, './views/index.html'))
+})
+
+app.get('/results', (req, res) => {
+  res.send('processing finished')
 })
 
 app.get('/process', (req, res) => {
