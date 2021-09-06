@@ -44,15 +44,17 @@ const getCalls = () => {
     })
 }
 
-const totalResults = (site, keyword) => {
+const totalResults = (h, keywords) => {
   let n
+  let site = h.url
   return getCalls()
     .then(calls => {
       const idx = Math.floor(calls / 100)
       if (idx === API_KEYS.length) { return Promise.reject('qouta') }
       const apiKey = API_KEYS[idx]
       let q = 'site:' + site
-      if (keyword) { q += ' "' + keyword + '"' }
+      if (keywords.length) { q += keywords.map(k=> ' "' + k + '"').join(" OR ") }
+      else {return Promise.resolve({data:{queries:{request:[{}]}}})}
       q = encodeURIComponent(q)
       const params = 'key=' + apiKey + '&cx=' + ENGINE_ID + '&q=' + q + '&alt=json&fields=queries(request(totalResults))'
       const url = ENDPOINT + '?' + params
