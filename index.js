@@ -43,8 +43,24 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, './views/index.html'))
 })
 
+app.post('/add_to_blacklist', (req, res) => {
+  const clientsMap = JSON.parse(fs.readFileSync(clientsMapPath, 'utf8'))
+  const { clientId } = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
+  const result = JSON.parse(fs.readFileSync('db/result.json', 'utf8'))
+  const xs = Object.keys(req.body)
+  clientsMap[clientId].blackList = _.unique(clientsMap[clientId].blackList.concat(xs))
+  fs.writeFileSync(clientsMapPath, JSON.stringify(clientsMap))
+  const blackMap = _.object(xs, xs)
+  const filtered = result.success.filter(x => blackMap[x.url] === undefined)
+  result.success = filtered
+  fs.writeFileSync('db/result.json', JSON.stringify(result))
+  res.redirect('/results')
+})
+
 app.get('/results', (req, res) => {
-  res.send('processing finished')
+  const result = JSON.parse(fs.readFileSync('db/result.json', 'utf8'))
+  const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
+  res.render('results', { ...result, ...task })
 })
 
 app.get('/process', (req, res) => {

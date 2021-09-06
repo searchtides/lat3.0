@@ -1,0 +1,25 @@
+html
+  head
+    title= "Showing results"
+  h1 Client: #{clientName}
+  form(action='http://localhost:3000/add_to_blacklist', method='POST' enctype="multipart/form-data")
+    input(type='submit', value='Add to black list')
+    table
+      tr
+        th Blacklist
+        th Url
+        th DR
+        th TR
+        th US Traffic
+        th Write to us
+        th Spam
+      each x in success
+        tr
+          td
+            input(type='checkbox' id=x.url name=x.url)
+          td  #{x.url}
+          td  #{x.dr}
+          td  #{x.tr}
+          td  #{x.us_tr}
+          td  #{x.writeToUs}
+          td  #{x.spam}
