@@ -39,7 +39,6 @@ exports.english = (html) => {
   const divs = root.querySelectorAll('div')
   const lines = divs.map(div => { return (div.text.trim()) }).filter(x => x !== '')
   const text = lines.join(' ')
-  fs.writeFileSync('./temp/extracted.txt', text)
   const words = text.replace('\n', ' ').replace(/[^a-zA-Z|-]+/g, ' ').replace(/\s\s+/g, ' ').toLowerCase().split(' ')
   const middleWords = words.filter(w => w.length >= from && w.length <= to)
   const freqMap = {}
