@@ -6,7 +6,7 @@ html
       }
     title= "Updating client settings"
   h1 Client: #{clientName}
-  form(action='http://localhost:3000/updating_settings', method='POST' enctype="multipart/form-data")
+  form(action='/updating_settings', method='POST' enctype="multipart/form-data")
     input(id='clientId' name='clientId' value=clientId)
     div Spam keywords
     textarea(id='spam' name='spam' cols=40 rows=10) #{spam}
@@ -15,5 +15,5 @@ html
     div DR settings
     textarea(id='drSettings' name='drSettings' cols=40 rows=10) #{drSettings}
     div
-    a(href="http://localhost:3000/start") Cancel 
+    a(href="/start") Cancel 
     input(type='submit', value='Submit')
