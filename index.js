@@ -138,7 +138,7 @@ app.get('/add_client', (req, res) => {
 app.get('/start', (req, res) => {
   fs.readFile(clientsMapPath, 'utf8', (err, data) => {
     if (err) {
-      res.send('No clients found. You should add at least one')
+      res.redirect('/add_client')
     } else {
       const clientsMap = JSON.parse(data)
       const opts = Object.keys(clientsMap).map(id => { return { id, name: clientsMap[id].clientName } })
