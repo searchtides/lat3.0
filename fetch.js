@@ -14,7 +14,7 @@ const toNumbers = (s) => {
 
 async function fetch (domain) {
   const res = {}
-  const browser = await puppeteer.launch({ headless: true })
+  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
   const page = await browser.newPage()
   let cookies
   try {

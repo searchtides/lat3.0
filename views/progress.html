@@ -29,7 +29,14 @@
   <div id='messages'></div>
   <script>
     var total = 0;
-    const ws = new WebSocket("ws://localhost:8080");
+    var loc = window.location, new_uri;
+    if (loc.protocol === "https:") {
+        new_uri = "wss:";
+    } else {
+        new_uri = "ws:";
+    }
+    new_uri += "//" + loc.host.replace('3000', '8080');
+    const ws = new WebSocket(new_uri);
     ws.addEventListener('open', () => {console.log('websock opened')});
     ws.addEventListener('message', (event) => {
       console.log(event.data)
