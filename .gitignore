@@ -3,6 +3,9 @@
 node_modules/
 test*
 /uploads/*.*
+!/uploads/.gitkeep
 /downloads/*.*
+!/downloads/.gitkeep
 cookies.json
 /db/*.*
+!/db/.gitkeep
