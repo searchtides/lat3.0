@@ -4,6 +4,7 @@ html
   h1 Client: #{clientName}
   form(action='http://localhost:3000/add_to_blacklist', method='POST' enctype="multipart/form-data")
     input(type='submit', value='Add to black list')
+    a(href='/download') Download
     table
       tr
         th Blacklist

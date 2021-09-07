@@ -43,6 +43,20 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, './views/index.html'))
 })
 
+app.get('/download', (req, res) => {
+  const result = JSON.parse(fs.readFileSync('db/result.json', 'utf8'))
+  const success = result.success
+  const headers = Object.keys(success[0])
+  let m = success.map(x => {
+    return headers.map(header => x[header]).join(',')
+  })
+  m = headers.join(',').concat(m)
+  /* eslint-disable */
+  fs.writeFileSync('db/result.csv', m.join("\n"))
+  /* eslint-enable */
+  res.download('db/result.csv', 'results.csv')
+})
+
 app.post('/add_to_blacklist', (req, res) => {
   const clientsMap = JSON.parse(fs.readFileSync(clientsMapPath, 'utf8'))
   const { clientId } = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
