@@ -50,7 +50,7 @@ app.get('/download', (req, res) => {
   let m = success.map(x => {
     return headers.map(header => x[header]).join(',')
   })
-  m = headers.join(',').concat(m)
+  m = [headers.join(',')].concat(m)
   /* eslint-disable */
   fs.writeFileSync('db/result.csv', m.join("\n"))
   /* eslint-enable */
