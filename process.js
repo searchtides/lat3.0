@@ -6,7 +6,6 @@ const totalResults = require('./serp').totalResults
 const _ = require('underscore')
 const success = x => x.right
 const lang = x => x.eng > 60
-const log = x => console.log(x)
 const externalAuthor = txt => /write\s+.*\s+us|guest post/i.test(txt)
 
 const engAndWrite = (url) => {
@@ -56,7 +55,7 @@ const getCountry = (x) => {
 const serial = (funcs, logger) =>
   funcs.reduce((promise, func, i) => {
     return promise.then(result => {
-      logger(i)
+      logger(JSON.stringify({ type: 'index', data: i }))
       return func()
         .then(Array.prototype.concat.bind(result))
         .catch(Array.prototype.concat.bind(result))
@@ -66,7 +65,7 @@ const serial = (funcs, logger) =>
 
 let failed = []
 
-const batch = (task, clientsMap) => {
+const batch = (task, clientsMap, logger) => {
   const urls = task.whiteList
   const clientId = task.clientId
   const clientSettings = clientsMap[clientId]
@@ -82,17 +81,24 @@ const batch = (task, clientsMap) => {
         return Promise.resolve({ left: { message: 'error during spam detection' } })
       })
   }
-
+  let payload = { type: 'message', data: 'detecting language and "write to us" template' }
+  logger(JSON.stringify(payload))
+  payload = { type: 'total', data: urls.length }
+  logger(JSON.stringify(payload))
   const funcs = urls.map(url => () => engAndWrite(url))
-  return serial(funcs, log).then((xs) => {
+  return serial(funcs, logger).then((xs) => {
     const ys = _.filter(xs, success)
     const zs = _.reject(xs, success)
     failed = failed.concat(zs)
     return Promise.resolve(ys.map(success).filter(lang))
   })
     .then(xs => {
+      payload = ({ type: 'message', data: 'getting metrics' })
+      logger(JSON.stringify(payload))
+      payload = { type: 'total', data: xs.length }
+      logger(JSON.stringify(payload))
       const funcs = xs.map(x => () => ahrefData(x))
-      return serial(funcs, log).then((xs) => {
+      return serial(funcs, logger).then((xs) => {
         const ys = _.filter(xs, success)
         const zs = _.reject(xs, success)
         failed = failed.concat(zs)
@@ -100,8 +106,12 @@ const batch = (task, clientsMap) => {
       })
     })
     .then(xs => {
+      payload = ({ type: 'message', data: 'detecting spam' })
+      logger(JSON.stringify(payload))
+      payload = { type: 'total', data: xs.length }
+      logger(JSON.stringify(payload))
       const funcs = xs.map(x => () => detectSpam(x))
-      return serial(funcs, log).then((xs) => {
+      return serial(funcs, logger).then((xs) => {
         const ys = _.filter(xs, success)
         const zs = _.reject(xs, success)
         failed = failed.concat(zs)
@@ -109,8 +119,12 @@ const batch = (task, clientsMap) => {
       })
     })
     .then(xs => {
+      payload = ({ type: 'message', data: 'detecting country' })
+      logger(JSON.stringify(payload))
+      payload = { type: 'total', data: xs.length }
+      logger(JSON.stringify(payload))
       const funcs = xs.map(x => () => getCountry(x))
-      return serial(funcs, log).then((xs) => {
+      return serial(funcs, logger).then((xs) => {
         const ys = _.filter(xs, success)
         const zs = _.reject(xs, success)
         failed = failed.concat(zs)

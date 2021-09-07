@@ -26,21 +26,25 @@
     </div>
   </div>
   <p></p>
-  <div id='res'></div>
+  <div id='messages'></div>
   <script>
     var total = 0;
-    let HEADERS = ['Domain', 'Country', 'Dr', 'Traffic', 'US traffic, %', 'eng', "Write to us", "Spam"]
-    console.log('progress page loaded');
     const ws = new WebSocket("ws://localhost:8080");
-    ws.addEventListener('open', () => {ws.send("Hello server!");});
+    ws.addEventListener('open', () => {console.log('websock opened')});
     ws.addEventListener('message', (event) => {
       console.log(event.data)
       let h = JSON.parse(event.data);
       switch (h.type) {
         case 'message':
+          const div = document.getElementById('messages');
+          const node = document.createElement("div");
+          const message = document.createTextNode(h.data);
+          node.appendChild(message);
+          div.appendChild(node);
           break;
         case 'total':
           total = h.data;
+          document.getElementById('complete').style.width = '0%';
           document.getElementById('right').innerHTML = total;
           break;
         case 'index':

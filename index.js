@@ -28,7 +28,7 @@ wss.on('connection', (ws) => {
   const urls = task.whiteList
   const clientsMap = JSON.parse(fs.readFileSync(clientsMapPath, 'utf8'))
   _ws.send(js({ type: 'total', data: urls.length }))
-  process(task, clientsMap)
+  process(task, clientsMap, x => ws.send(x))
     .then((result) => {
       ws.send(js({ type: 'finish', data: result }))
       fs.writeFileSync('db/result.json', JSON.stringify(result))
