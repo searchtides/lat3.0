@@ -78,7 +78,7 @@ const batch = (task, clientsMap, logger) => {
         return Promise.resolve({ right: { ...x, spam: n } })
       })
       .catch((e) => {
-        return Promise.resolve({ left: { message: 'error during spam detection' } })
+        return Promise.resolve({ left: { message: 'error during spam detection', url: x.url } })
       })
   }
   let payload = { type: 'message', data: 'detecting language and "write to us" template' }
