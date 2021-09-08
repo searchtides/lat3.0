@@ -1,8 +1,10 @@
 html
   head
+    style
+      include ./style.css
     title= "Adding user"
   body
     h1= "Enter client name"
     form(action='/client_added', method='POST' enctype="multipart/form-data")
-      input(id="clientName" name="clientName")
+      input(type='text' id="clientName" name="clientName")
       input(type='submit', value='Submit')

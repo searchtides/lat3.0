@@ -1,9 +1,27 @@
 body {
   font-family: 'Trebuchet MS', sans-serif;
-  }
+}
+
+input[type=text] {
+  margin-right: 5px;
+}
+
+.clientId {
+ display:none;
+}
+
 input[type=submit] {
   padding:5px 10px;
-  background:black;
+  background:dodgerblue;
+  border:0 none;
+  cursor:pointer;
+  border-radius: 5px;
+  color:white;
+}
+
+.blacklist {
+  padding:5px 10px;
+  background:black !important;
   border:0 none;
   cursor:pointer;
   border-radius: 5px; 
@@ -29,8 +47,7 @@ a {
  color:grey;
  border-bottom: 1px solid grey;
 }
-th {
+th, td {
   text-align:left;
-  margin:5px;
+  padding:2px 5px;
 }
-

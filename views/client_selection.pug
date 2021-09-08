@@ -1,5 +1,7 @@
 html
   head
+    style
+      include ./style.css
     title= "Selecting client"
     h1= "Select client:"
   form(action='/second_step', method='POST' enctype="multipart/form-data")

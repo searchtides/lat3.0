@@ -1,14 +1,12 @@
 html
   head
-    style.
-      #clientId {
-       display:none;
-      }
+    style
+      include ./style.css
     title= "Selecting file"
     h1 Client: #{clientName}
     h2= "Select cvs file on you drive:"
   form(action='/load_file', method='POST' enctype="multipart/form-data")
-    input(id='clientId' name='clientId' value=clientId)
+    input(class='clientId' name='clientId' value=clientId)
     input(id="fileupload" name="myfile" type="file")
     p
     input(type='submit', value='Submit')

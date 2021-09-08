@@ -1,13 +1,11 @@
 html
   head
-    style.
-      #clientId {
-       display:none;
-      }
+    style
+      include ./style.css
     title= "Updating client settings"
   h1 Client: #{clientName}
   form(action='/updating_settings', method='POST' enctype="multipart/form-data")
-    input(id='clientId' name='clientId' value=clientId)
+    input(class='clientId' name='clientId' value=clientId)
     div Spam keywords
     textarea(id='spam' name='spam' cols=40 rows=10) #{spam}
     div Keywords
