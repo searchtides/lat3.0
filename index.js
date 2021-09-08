@@ -43,18 +43,44 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, './views/index.html'))
 })
 
+app.get('/result_failed', (req, res) => {
+  const failed = JSON.parse(fs.readFileSync('db/failed.json', 'utf8'))
+  const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
+  res.render('failed', { failed, clientName: task.clientName })
+})
+
+app.get('/result_type_one', (req, res) => {
+  const xs = JSON.parse(fs.readFileSync('db/typeOne.json', 'utf8'))
+  const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
+  res.render('type_one', { xs, clientName: task.clientName })
+})
+
+app.get('/result_type_two', (req, res) => {
+  const xs = JSON.parse(fs.readFileSync('db/typeTwo.json', 'utf8'))
+  const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
+  res.render('type_two', { xs, clientName: task.clientName, records: xs.length })
+})
+
+app.get('/result_type_three', (req, res) => {
+  const xs = JSON.parse(fs.readFileSync('db/typeThree.json', 'utf8'))
+  const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
+  res.render('type_three', { xs, clientName: task.clientName, records: xs.length })
+})
+
 app.get('/download', (req, res) => {
-  const result = JSON.parse(fs.readFileSync('db/result.json', 'utf8'))
-  const success = result.success
-  const headers = Object.keys(success[0])
-  let m = success.map(x => {
+  const root = req.query.filename
+  const filename = path.join('db', root)
+  const result = JSON.parse(fs.readFileSync(filename + '.json', 'utf8'))
+  if (result.length === 0) res.end()
+  const headers = Object.keys(result[0])
+  let m = result.map(x => {
     return headers.map(header => x[header]).join(',')
   })
   m = [headers.join(',')].concat(m)
   /* eslint-disable */
-  fs.writeFileSync('db/result.csv', m.join("\n"))
+  fs.writeFileSync(filename + '.csv', m.join("\n"))
   /* eslint-enable */
-  res.download('db/result.csv', 'results.csv')
+  res.download(filename + '.csv', root + '.csv')
 })
 
 app.post('/add_to_blacklist', (req, res) => {
@@ -73,6 +99,18 @@ app.post('/add_to_blacklist', (req, res) => {
 
 app.get('/results', (req, res) => {
   const result = JSON.parse(fs.readFileSync('db/result.json', 'utf8'))
+  const success = result.success
+  const summary = success
+  fs.writeFileSync('db/summary.json', JSON.stringify(summary))
+  const typeOne = success.filter(x => x.us_tr >= 80 && !x.writeToUs && x.spam === 0)
+  fs.writeFileSync('db/typeOne.json', JSON.stringify(typeOne))
+  const typeTwo = success.filter(x => x.us_tr >= 80 && x.writeToUs)
+  fs.writeFileSync('db/typeTwo.json', JSON.stringify(typeTwo))
+  const typeThree = success.filter(x => x.spam > 0)
+  fs.writeFileSync('db/typeThree.json', JSON.stringify(typeThree))
+  const failed = result.fails.map(x => x.left)
+  fs.writeFileSync('db/failed.json', JSON.stringify(failed))
+
   const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
   res.render('results', { ...result, ...task })
 })

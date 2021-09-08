@@ -1,10 +1,19 @@
 html
   head
+    style
+      include ./style.css
     title= "Showing results"
   h1 Client: #{clientName}
+  p
+    a(class='selected' href='/results') Summary
+    a(href='/result_type_one') Type I
+    a(href='/result_type_two') Type II
+    a(href='/result_type_three') Type III
+    a(href='/result_failed') Failed
   form(action='/add_to_blacklist', method='POST' enctype="multipart/form-data")
-    input(type='submit', value='Add to black list')
-    a(href='/download') Download
+    div
+      a(class='download' href='/download?filename=summary') Download
+      input(type='submit', value='Add to black list')
     table
       tr
         th Blacklist

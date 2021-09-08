@@ -1,0 +1,21 @@
+html
+  head
+    style
+      include ./style.css
+  title= "Failed to process"
+  h1 Client: #{clientName}
+  p
+    a(href='/results') Summary
+    a(href='/result_type_one') Type I
+    a(href='/result_type_two') Type II
+    a(href='/result_type_three') Type III
+    a(class='selected' href='/result_failed') Failed
+  a(class='download' href='/download?filename=failed') Download
+  table
+    tr
+      th Url
+      th Reason
+    each x in failed
+      tr
+        td  #{x.url}
+        td  #{x.message}
