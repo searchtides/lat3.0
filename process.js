@@ -16,7 +16,7 @@ const engAndWrite = (url) => {
       return Promise.resolve({ right: { url, eng, writeToUs } })
     })
     .catch((e) => {
-      return Promise.resolve({ left: { message: 'error during engAndWrite', url } })
+      return Promise.resolve({ left: { message: 'error during page dowloading', url } })
     })
 }
 
@@ -26,7 +26,7 @@ const ahrefData = (x) => {
       return Promise.resolve({ right: { ...x, ...h } })
     })
     .catch((e) => {
-      return Promise.resolve({ left: { message: 'error during ahrefData', url: x.url } })
+      return Promise.resolve({ left: { message: 'error during getting metrics', url: x.url } })
     })
 }
 
