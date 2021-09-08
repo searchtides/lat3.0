@@ -16,7 +16,7 @@ const engAndWrite = (url) => {
       return Promise.resolve({ right: { url, eng, writeToUs } })
     })
     .catch((e) => {
-      return Promise.resolve({ left: { message: 'error during page dowloading', url } })
+      return Promise.resolve({ left: { message: 'error during page dowloading', url, e } })
     })
 }
 
@@ -26,7 +26,7 @@ const ahrefData = (x) => {
       return Promise.resolve({ right: { ...x, ...h } })
     })
     .catch((e) => {
-      return Promise.resolve({ left: { message: 'error during getting metrics', url: x.url } })
+      return Promise.resolve({ left: { message: 'error during getting metrics', url: x.url, e } })
     })
 }
 
@@ -48,7 +48,7 @@ const getCountry = (x) => {
       return Promise.resolve({ right: { ...x, ...h } })
     })
     .catch((e) => {
-      return Promise.resolve({ left: { message: 'error during country detection', url: x.url } })
+      return Promise.resolve({ left: { message: 'error during country detection', url: x.url, e } })
     })
 }
 
@@ -78,7 +78,7 @@ const batch = (task, clientsMap, logger) => {
         return Promise.resolve({ right: { ...x, spam: n } })
       })
       .catch((e) => {
-        return Promise.resolve({ left: { message: 'error during spam detection', url: x.url } })
+        return Promise.resolve({ left: { message: 'error during spam detection', url: x.url, e } })
       })
   }
   let payload = { type: 'message', data: 'detecting language and "write to us" template' }
