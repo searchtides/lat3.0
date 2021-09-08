@@ -2,7 +2,7 @@ const axios = require('axios')
 const fs = require('fs').promises
 const ENDPOINT = 'https://www.googleapis.com/customsearch/v1'
 const ENGINE_ID = '44045c57891c85f46'
-const API_KEYS = ['AIzaSyAuhNHa0sb4xPmAdsKTvzTDUjBDuYBfcM4']
+const API_KEYS = process.env.API_KEYS.split(',')
 
 const getPacificDate = () => {
   const date = new Date()
