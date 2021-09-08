@@ -65,6 +65,9 @@
           break;
       }
     });
+    window.onunload = function () {
+        ws.close();
+    }
   </script>
   </body>
 </html>
