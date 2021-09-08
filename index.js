@@ -112,7 +112,7 @@ app.get('/results', (req, res) => {
   fs.writeFileSync('db/failed.json', JSON.stringify(failed))
 
   const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
-  res.render('results', { ...result, ...task })
+  res.render('results', { records: success.length, success, ...task })
 })
 
 app.get('/process', (req, res) => {

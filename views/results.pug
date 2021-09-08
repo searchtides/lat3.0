@@ -11,25 +11,28 @@ html
     a(href='/result_type_three') Type III
     a(href='/result_failed') Failed
   form(action='/add_to_blacklist', method='POST' enctype="multipart/form-data")
-    div
-      a(class='download' href='/download?filename=summary') Download
-      input(class='blacklist' type='submit', value='Add to black list')
-    table
-      tr
-        th Blacklist
-        th Url
-        th DR
-        th TR
-        th US Traffic
-        th Write to us
-        th Spam
-      each x in success
+    if records > 0
+      div
+        a(class='download' href='/download?filename=summary') Download
+        input(class='blacklist' type='submit', value='Add to black list')
+      table
         tr
-          td
-            input(type='checkbox' id=x.url name=x.url)
-          td  #{x.url}
-          td  #{x.dr}
-          td  #{x.tr}
-          td  #{x.us_tr}
-          td  #{x.writeToUs}
-          td  #{x.spam}
+          th Blacklist
+          th Url
+          th DR
+          th TR
+          th US Traffic
+          th Write to us
+          th Spam
+        each x in success
+          tr
+            td
+              input(type='checkbox' id=x.url name=x.url)
+            td  #{x.url}
+            td  #{x.dr}
+            td  #{x.tr}
+            td  #{x.us_tr}
+            td  #{x.writeToUs}
+            td  #{x.spam}
+    else
+      div No records
