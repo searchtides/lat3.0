@@ -3,12 +3,14 @@ html
     style
       include ./style.css
     title= "Selecting client"
-    h1= "Select client:"
   form(action='/second_step', method='POST' enctype="multipart/form-data")
+    span Select client:
     select(id="client" name="clientId")
       each x in xs
         option(value=x.id) #{x.name}
-    a(href="/add_client") Add client
+    div
+      div or
+      a(href="/add_client") Add client
     p
     div#action
       div
