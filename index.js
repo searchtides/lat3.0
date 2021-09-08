@@ -39,10 +39,6 @@ app.use(fileUpload())
 app.set('view engine', 'pug')
 app.set('views', './views')
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, './views/index.html'))
-})
-
 app.get('/result_failed', (req, res) => {
   const xs = JSON.parse(fs.readFileSync('db/failed.json', 'utf8'))
   const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
@@ -153,7 +149,7 @@ app.post('/client_added', (req, res) => {
     if (err) {
       clientsMap[id] = emptyRecord
       fs.writeFileSync(clientsMapPath, JSON.stringify(clientsMap))
-      res.redirect('/start')
+      res.redirect('/')
     } else {
       clientsMap = JSON.parse(data)
       const names = Object.keys(clientsMap).map(id => clientsMap[id].clientName)
@@ -163,7 +159,7 @@ app.post('/client_added', (req, res) => {
       } else {
         clientsMap[id] = emptyRecord
         fs.writeFileSync(clientsMapPath, JSON.stringify(clientsMap))
-        res.redirect('/start')
+        res.redirect('/')
       }
     }
   })
@@ -173,7 +169,7 @@ app.get('/add_client', (req, res) => {
   res.render('add_client')
 })
 
-app.get('/start', (req, res) => {
+app.get('/', (req, res) => {
   fs.readFile(clientsMapPath, 'utf8', (err, data) => {
     if (err) {
       res.redirect('/add_client')
