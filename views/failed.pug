@@ -10,12 +10,15 @@ html
     a(href='/result_type_two') Type II
     a(href='/result_type_three') Type III
     a(class='selected' href='/result_failed') Failed
-  a(class='download' href='/download?filename=failed') Download
-  table
-    tr
-      th Url
-      th Reason
-    each x in failed
+  if records > 0
+    a(class='download' href='/download?filename=failed') Download
+    table
       tr
-        td  #{x.url}
-        td  #{x.message}
+        th Url
+        th Reason
+      each x in failed
+        tr
+          td  #{x.url}
+          td  #{x.message}
+  else
+    div No records

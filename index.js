@@ -44,15 +44,15 @@ app.get('/', (req, res) => {
 })
 
 app.get('/result_failed', (req, res) => {
-  const failed = JSON.parse(fs.readFileSync('db/failed.json', 'utf8'))
+  const xs = JSON.parse(fs.readFileSync('db/failed.json', 'utf8'))
   const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
-  res.render('failed', { failed, clientName: task.clientName })
+  res.render('failed', { xs, clientName: task.clientName, records: xs.length })
 })
 
 app.get('/result_type_one', (req, res) => {
   const xs = JSON.parse(fs.readFileSync('db/typeOne.json', 'utf8'))
   const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
-  res.render('type_one', { xs, clientName: task.clientName })
+  res.render('type_one', { xs, clientName: task.clientName, records: xs.length })
 })
 
 app.get('/result_type_two', (req, res) => {
