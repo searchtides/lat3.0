@@ -35,6 +35,7 @@ async function fetch (domain) {
   }
   await page.waitForSelector('#organicSearchTab', { visible: true, timeout: 0 })
   await page.click('#organicSearchTab')
+  await page.waitForSelector('#DomainRatingContainer', { visible: true, timeout: 0 })
   const dr = await page.$eval('#DomainRatingContainer > span', (element) => { return element.innerHTML })
   res.dr = Number(dr)
   await page.waitForSelector('#organic_traffic_val', { visible: true, timeout: 0 })
