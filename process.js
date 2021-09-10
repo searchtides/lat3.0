@@ -15,7 +15,8 @@ const engAndWrite = (url) => {
       const writeToUs = externalAuthor(html)
       return Promise.resolve({ right: { url, eng, writeToUs } })
     })
-    .catch((e) => {
+    .catch((error) => {
+      const e = JSON.stringify(error)
       return Promise.resolve({ left: { message: 'error during page dowloading', url, e } })
     })
 }
@@ -25,7 +26,8 @@ const ahrefData = (x) => {
     .then(h => {
       return Promise.resolve({ right: { ...x, ...h } })
     })
-    .catch((e) => {
+    .catch((error) => {
+      const e = JSON.stringify(error)
       return Promise.resolve({ left: { message: 'error during getting metrics', url: x.url, e } })
     })
 }
@@ -47,7 +49,8 @@ const getCountry = (x) => {
     .then(h => {
       return Promise.resolve({ right: { ...x, ...h } })
     })
-    .catch((e) => {
+    .catch((error) => {
+      const e = JSON.stringify(error)
       return Promise.resolve({ left: { message: 'error during country detection', url: x.url, e } })
     })
 }
@@ -77,7 +80,8 @@ const batch = (task, clientsMap, logger) => {
       .then(n => {
         return Promise.resolve({ right: { ...x, spam: n } })
       })
-      .catch((e) => {
+      .catch((error) => {
+        const e = JSON.stringify(error)
         return Promise.resolve({ left: { message: 'error during spam detection', url: x.url, e } })
       })
   }
