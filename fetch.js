@@ -1,6 +1,6 @@
 const fs = require('fs').promises
 const getDmap = require('./get').dmap
-const getCoef = require("./get").coef;
+const getCoef = require('./get').coef
 const login = require('./login').login
 const puppeteer = require('puppeteer')
 
@@ -46,10 +46,10 @@ async function fetch (domain) {
   res.us_tr = dMap['United States']
   const trBig = await page.$eval('#numberOfOrganicTraffic > span', (element) => { return element.textContent })
   res.tr = toNumbers(trBig)
-  await page.click('#organic_data_chart_year1');
+  await page.click('#organic_data_chart_year1')
   await page.waitForFunction('document.getElementById("organic_data_chart_year1").className == "clickable chart-btn-selected"')
   const chart = await page.$eval('#organic_chart_traffic', (element) => { return element.outerHTML })
-  res['coef'] = await get_coef(chart)
+  res.coef = await getCoef(chart)
   await browser.close()
   return Promise.resolve(res)
 };
