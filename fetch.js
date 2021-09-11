@@ -27,13 +27,13 @@ async function fetch (domain) {
   await page.setCookie(...cookies)
   const startUrl = 'https://ahrefs.com/site-explorer/overview/v2/subdomains/live?target=' + domain
   await page.goto(startUrl)
-  console.log(page.url())
   if (page.url() !== startUrl) {
     // session ended. Need to login again.
     cookies = await login(browser)
     await page.setCookie(...cookies)
     await page.goto(startUrl)
   }
+  console.log(page.url())
   await page.waitForSelector('#organicSearchTab', { visible: true, timeout: 0 })
   await page.click('#organicSearchTab')
   await page.waitForSelector('#DomainRatingContainer', { visible: true, timeout: 0 })
