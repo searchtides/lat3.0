@@ -50,7 +50,8 @@ async function fetch (domain) {
   await page.waitForSelector('#organic_data_chart_year1', { visible: true, timeout: 0 })
   await page.waitForFunction('document.getElementById("organic_data_chart_year1").className == "clickable chart-btn-selected"')
   const chart = await page.$eval('#organic_chart_traffic', (element) => { return element.outerHTML })
-  res.coef = await getCoef(chart)
+  const coef = await getCoef(chart)
+  res.angle = ((Math.atan(coef) * 180) / Math.PI).toFixed(1)
   await browser.close()
   return Promise.resolve(res)
 };

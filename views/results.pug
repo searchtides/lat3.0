@@ -25,6 +25,7 @@ html
           th US Traffic
           th Write to us
           th Spam
+          th Trend angle
         each x in success
           tr
             td
@@ -35,5 +36,6 @@ html
             td  #{x.us_tr}
             td  #{x.writeToUs}
             td  #{x.spam}
+            td  #{x.angle}
     else
       div No records
