@@ -4,7 +4,7 @@ const fs = require('fs').promises
 exports.evaluated_content = (url, filename) => {
   let _data, _browser, _page
   return new Promise((resolve, reject) => {
-    puppeteer.launch({ headless: true, args: ['--no-sandbox']})
+    puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
       .then(browser => {
         _browser = browser
         return _browser.newPage()

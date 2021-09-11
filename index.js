@@ -103,7 +103,7 @@ app.get('/results', (req, res) => {
   fs.writeFileSync('db/typeOne.json', JSON.stringify(typeOne))
   const typeTwo = success.filter(x => x.us_tr >= 80 && x.writeToUs)
   fs.writeFileSync('db/typeTwo.json', JSON.stringify(typeTwo))
-  const typeThree = success.filter(x => x.spam > 0 || x.us_tr <80)
+  const typeThree = success.filter(x => x.spam > 0 || x.us_tr < 80)
   fs.writeFileSync('db/typeThree.json', JSON.stringify(typeThree))
   const failed = result.fails.map(x => x.left)
   fs.writeFileSync('db/failed.json', JSON.stringify(failed))
