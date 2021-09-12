@@ -107,8 +107,12 @@ app.get('/results', (req, res) => {
   const typeThree = success.filter(x => x.spam > 0 || x.us_tr < 80)
   fs.writeFileSync('db/typeThree.json', JSON.stringify(typeThree))
   const failed = result.fails.map(x => x.left)
-  fs.writeFileSync('db/failed.json', JSON.stringify(failed))
-
+  const failedFilename = 'db/failed'
+  fs.writeFileSync(failedFilename + '.json', JSON.stringify(failed))
+  if (failed.length) {
+    const dateSuffix = new Date().toISOString().split('.')[0]
+    fs.writeFileSync(failedFilename + dateSuffix + '.json', JSON.stringify(failed))
+  }
   const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
   res.render('results', { records: success.length, success, ...task, journal })
 })
