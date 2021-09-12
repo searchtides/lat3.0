@@ -6,12 +6,17 @@ html
   h1 Client: #{clientName}
   form(action='/updating_settings', method='POST' enctype="multipart/form-data")
     input(class='clientId' name='clientId' value=clientId)
-    div Spam keywords
-    textarea(id='spam' name='spam' cols=40 rows=10) #{spam}
-    div Keywords
-    textarea(id='keywords' name='keywords' cols=40 rows=10) #{keywords}
-    div DR settings
-    textarea(id='drSettings' name='drSettings' cols=40 rows=10) #{drSettings}
+    div(class='container')
+      div(class='col')
+        div Spam keywords
+        textarea(id='spam' name='spam' cols=40 rows=10) #{spam}
+        div Keywords
+        textarea(id='keywords' name='keywords' cols=40 rows=10) #{keywords}
+      div(class='col')
+        div DR settings
+        textarea(id='drSettings' name='drSettings' cols=40 rows=10) #{drSettings}
+        div Blacklist
+        textarea(id='blackList' name='blackList' cols=40 rows=10) #{blackList}
     div
     a(href="/") Cancel 
     input(type='submit', value='Submit')

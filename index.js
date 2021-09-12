@@ -127,12 +127,13 @@ app.get('/settings_updated', (req, res) => {
 
 const trim = x => x.trim()
 app.post('/updating_settings', (req, res) => {
-  let { clientId, spam, keywords, drSettings } = req.body
+  let { clientId, spam, keywords, drSettings, blackList } = req.body
   spam = spam.replace(/[\n|\r|]/g, ',').split(',').map(trim).filter(x => x)
   keywords = keywords.replace(/[\n|\r|,\s+]/g, ',').split(',').map(trim).filter(x => x)
+  blackList = blackList.replace(/[\n|\r|]/g, ',').split(',').map(trim).filter(x => x)
   drSettings = _.object(drSettings.split('\n').map(x => x.split('=').map(trim)))
   const clientsMap = JSON.parse(fs.readFileSync(clientsMapPath, 'utf8'))
-  const { blackList, clientName } = clientsMap[clientId]
+  const { clientName } = clientsMap[clientId]
   clientsMap[clientId] = { clientName, spam, keywords, drSettings, blackList }
   fs.writeFileSync(clientsMapPath, JSON.stringify(clientsMap))
   res.redirect('/settings_updated')
@@ -197,6 +198,7 @@ app.post('/second_step', (req, res) => {
   if (req.body.action === 'update') {
     opts.spam = opts.spam.join('\n')
     opts.keywords = opts.keywords.join('\n')
+    opts.blackList = opts.blackList.join('\n')
     opts.drSettings = _.pairs(opts.drSettings).map(pair => pair[0] + '=' + pair[1]).join('\n')
     res.render('update_settings', opts)
   }
