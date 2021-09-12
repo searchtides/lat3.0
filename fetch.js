@@ -46,8 +46,8 @@ async function fetch (domain) {
   res.us_tr = dMap['United States']
   const trBig = await page.$eval('#numberOfOrganicTraffic > span', (element) => { return element.textContent })
   res.tr = toNumbers(trBig)
-  await page.click('#organic_data_chart_year1')
   await page.waitForSelector('#organic_data_chart_year1', { visible: true, timeout: 0 })
+  await page.click('#organic_data_chart_year1')
   await page.waitForFunction('document.getElementById("organic_data_chart_year1").className == "clickable chart-btn-selected"')
   const chart = await page.$eval('#organic_chart_traffic', (element) => { return element.outerHTML })
   const coef = await getCoef(chart)
