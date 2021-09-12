@@ -67,6 +67,7 @@ const serial = (funcs, logger) =>
   , Promise.resolve([]))
 
 let failed = []
+const journal = {}
 
 const batch = (task, clientsMap, logger) => {
   const urls = task.whiteList
@@ -88,6 +89,7 @@ const batch = (task, clientsMap, logger) => {
   let payload = { type: 'message', data: 'detecting language and "write to us" template' }
   logger(JSON.stringify(payload))
   payload = { type: 'total', data: urls.length }
+  journal.total = urls.length
   logger(JSON.stringify(payload))
   const funcs = urls.map(url => () => engAndWrite(url))
   return serial(funcs, logger).then((xs) => {
@@ -97,6 +99,7 @@ const batch = (task, clientsMap, logger) => {
     return Promise.resolve(ys.map(success).filter(lang))
   })
     .then(xs => {
+      journal.non_eng = urls.length - xs.length
       payload = ({ type: 'message', data: 'getting metrics' })
       logger(JSON.stringify(payload))
       payload = { type: 'total', data: xs.length }
@@ -110,6 +113,7 @@ const batch = (task, clientsMap, logger) => {
       })
     })
     .then(xs => {
+      journal.metrics_passed = xs.length
       payload = ({ type: 'message', data: 'detecting spam' })
       logger(JSON.stringify(payload))
       payload = { type: 'total', data: xs.length }
@@ -136,7 +140,8 @@ const batch = (task, clientsMap, logger) => {
       })
     })
     .then(xs => {
-      return { success: xs, fails: failed }
+      journal.failed = failed.length
+      return { success: xs, fails: failed, journal }
     })
 }
 
