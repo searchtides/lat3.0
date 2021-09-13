@@ -11,7 +11,7 @@ const parse = util.promisify(require('csv-parse'))
 const _ = require('underscore')
 const extractDomain = require('extract-domain')
 const { v4: uuidv4 } = require('uuid')
-const process = require('./process').batch
+const process_batch = require('./process').batch
 const clientsMapPath = 'db/clients_map.json'
 const send = require('./mailer').send
 
@@ -30,7 +30,7 @@ wss.on('connection', (ws) => {
   const urls = task.whiteList
   const clientsMap = JSON.parse(fs.readFileSync(clientsMapPath, 'utf8'))
   _ws.send(js({ type: 'total', data: urls.length }))
-  process(task, clientsMap, x => ws.send(x))
+  process_batch(task, clientsMap, x => ws.send(x))
     .then((result) => {
       ws.send(js({ type: 'finish', data: result }))
       fs.writeFileSync('db/result.json', JSON.stringify(result))
