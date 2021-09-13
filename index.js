@@ -13,6 +13,7 @@ const extractDomain = require('extract-domain')
 const { v4: uuidv4 } = require('uuid')
 const process = require('./process').batch
 const clientsMapPath = 'db/clients_map.json'
+const send = require('./mailer').send
 
 const wss = new WebSocketServer({ port: 8080 })
 
@@ -112,6 +113,11 @@ app.get('/results', (req, res) => {
   if (failed.length) {
     const dateSuffix = new Date().toISOString().split('.')[0]
     fs.writeFileSync(failedFilename + dateSuffix + '.json', JSON.stringify(failed))
+    if (process.env.DEV_MODE === 'on') {
+      send(failedFilename + dateSuffix)
+        .then(x => x)
+        .catch(e => e)
+    }
   }
   const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
   res.render('results', { records: success.length, success, ...task, journal })
