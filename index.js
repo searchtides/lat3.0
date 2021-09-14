@@ -99,6 +99,10 @@ app.get('/results', (req, res) => {
   const result = JSON.parse(fs.readFileSync('db/result.json', 'utf8'))
   const success = result.success
   const summary = success
+  success.forEach(x => {
+    x.kwds = _.keys(x.keywords).map(kwd => kwd + ':' + (x.keywords[kwd].right ? x.keywords[kwd].right : 'error')).join(', ')
+  })
+  console.log(success)
   const journal = result.journal
   fs.writeFileSync('db/summary.json', JSON.stringify(summary))
   const typeOne = success.filter(x => x.us_tr >= 80 && !x.writeToUs && x.spam === 0)

@@ -2,7 +2,7 @@ const path = require('path')
 const fetch = require('./fetch').fetch
 const download = require('./download').evaluated_content
 const { english, country } = require('./lookup')
-const totalResults = require('./serp').totalResults
+const { countKeywords, totalResults } = require('./serp')
 const _ = require('underscore')
 const success = x => x.right
 const lang = x => x.eng > 60
@@ -74,6 +74,7 @@ const batch = (task, clientsMap, logger) => {
   const clientId = task.clientId
   const clientSettings = clientsMap[clientId]
   const spam = clientSettings.spam
+  const keywords = clientSettings.keywords
   const metricsPassed = metricsPass(clientSettings.drSettings)
 
   const detectSpam = (x) => {
@@ -86,6 +87,18 @@ const batch = (task, clientsMap, logger) => {
         return Promise.resolve({ left: { message: 'error during spam detection', url: x.url, e } })
       })
   }
+
+  const keywordsCount = (x, keywords) => {
+    return countKeywords(x.url, keywords)
+      .then(h => {
+        return Promise.resolve({ right: { ...x, keywords: h } })
+      })
+      .catch((error) => {
+        const e = JSON.stringify(error, Object.getOwnPropertyNames(error))
+        return Promise.resolve({ left: { message: 'error during keywords counting', url: x.url, e } })
+      })
+  }
+
   let payload = { type: 'message', data: 'detecting language and "write for us" template' }
   logger(JSON.stringify(payload))
   payload = { type: 'total', data: urls.length }
@@ -119,6 +132,22 @@ const batch = (task, clientsMap, logger) => {
       payload = { type: 'total', data: xs.length }
       logger(JSON.stringify(payload))
       const funcs = xs.map(x => () => detectSpam(x))
+      return serial(funcs, logger).then((xs) => {
+        const ys = _.filter(xs, success)
+        const zs = _.reject(xs, success)
+        failed = failed.concat(zs)
+        return Promise.resolve(ys.map(success))
+      })
+    })
+    .then(xs => {
+      if (keywords.length === 0) {
+        return Promise.resolve(xs)
+      }
+      payload = ({ type: 'message', data: 'counting keywords' })
+      logger(JSON.stringify(payload))
+      payload = { type: 'total', data: xs.length }
+      logger(JSON.stringify(payload))
+      const funcs = xs.map(x => () => keywordsCount(x, keywords))
       return serial(funcs, logger).then((xs) => {
         const ys = _.filter(xs, success)
         const zs = _.reject(xs, success)

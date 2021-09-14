@@ -30,6 +30,7 @@ html
           th Write to us
           th Spam
           th Trend angle
+          th Keywords
         each x in success
           tr
             td
@@ -41,5 +42,6 @@ html
             td  #{x.writeToUs}
             td  #{x.spam}
             td  #{x.angle}
+            td  #{x.kwds}
     else
       div No records

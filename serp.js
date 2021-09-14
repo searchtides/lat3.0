@@ -70,4 +70,20 @@ const totalResults = (h, keywords) => {
     })
 }
 /* eslint-enable */
+const countKeywords = async function (url, keywords) {
+  const resMap = {}
+  let res
+  for (const kwd of keywords) {
+    try {
+      const count = await totalResults({ url }, [kwd])
+      res = { right: count }
+    } catch (e) {
+      res = { left: e }
+    }
+    resMap[kwd] = res
+  }
+  return resMap
+}
+
+exports.countKeywords = countKeywords
 exports.totalResults = totalResults
