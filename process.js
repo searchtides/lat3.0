@@ -6,7 +6,7 @@ const totalResults = require('./serp').totalResults
 const _ = require('underscore')
 const success = x => x.right
 const lang = x => x.eng > 60
-const externalAuthor = txt => /write\s+.*\s+us|guest post/i.test(txt)
+const externalAuthor = txt => /write for us|guest post/i.test(txt)
 
 const engAndWrite = (url) => {
   return download('http://' + url, path.join('./downloads', url + '.html'))
@@ -86,7 +86,7 @@ const batch = (task, clientsMap, logger) => {
         return Promise.resolve({ left: { message: 'error during spam detection', url: x.url, e } })
       })
   }
-  let payload = { type: 'message', data: 'detecting language and "write to us" template' }
+  let payload = { type: 'message', data: 'detecting language and "write for us" template' }
   logger(JSON.stringify(payload))
   payload = { type: 'total', data: urls.length }
   journal.total = urls.length
