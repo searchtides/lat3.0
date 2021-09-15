@@ -2,6 +2,7 @@ require('dotenv').config()
 const util = require('util')
 const path = require('path')
 const fs = require('fs')
+const fsa = require('fs').promises
 const express = require('express')
 const fileUpload = require('express-fileupload')
 const app = express()
@@ -149,8 +150,27 @@ app.post('/update_client_settings', (req, res) => {
   res.redirect('/client_settings_updated')
 })
 
-app.get('/update_client_settings', (req, res) => {
-  res.render('update_client_settings')
+app.get('/get_settings', (req, res) => {
+  let h
+  fsa.readFile('db/settings.json', 'utf8')
+    .then(txt => {
+      h = JSON.parse(txt)
+      return Promise.resolve(h)
+    })
+    .catch(e => {
+      h = { spamThreshold: 0, trendAngle: 5 }
+      fs.writeFileSync('db/settings.json', JSON.stringify(h))
+      return Promise.resolve(h)
+    })
+    .then(h => {
+      res.render('settings_form', h)
+    })
+})
+
+app.post('/update_settings', (req, res) => {
+  const h = req.body
+  fs.writeFileSync('db/settings.json', JSON.stringify(h))
+  res.render('settings_updated')
 })
 
 app.get('/client_exists', (req, res) => {

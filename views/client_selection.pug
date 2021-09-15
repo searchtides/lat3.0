@@ -3,21 +3,24 @@ html
     style
       include ./style.css
     title= "Selecting client"
-  form(action='/second_step', method='POST' enctype="multipart/form-data")
-    span Select client:
-    select(id="client" name="clientId")
-      each x in xs
-        option(value=x.id) #{x.name}
-    div
-      div or
+  div(class='container')
+    div(class='leftPanel')
+      a(href='get_settings') Settings
+      p
       a(href="/add_client") Add client
-    p
-    div#action
-      div
-        input(type='radio', name='action', value='upload' checked='true' )#upload
-        label(for='upload') Upload file
-      div
-        input(type='radio', name='action', value='update')#update
-        label(for='update') Update client settings
-    p
-    input(type='submit', value='Submit')
+    div
+      form(action='/second_step', method='POST' enctype="multipart/form-data")
+        span Select client:
+        select(id="client" name="clientId")
+          each x in xs
+            option(value=x.id) #{x.name}
+        p
+        div#action
+          div
+            input(type='radio', name='action', value='upload' checked='true' )#upload
+            label(for='upload') Upload file
+          div
+            input(type='radio', name='action', value='update')#update
+            label(for='update') Update client settings
+        p
+        input(type='submit', value='Submit')

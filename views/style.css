@@ -2,6 +2,12 @@ body {
   font-family: 'Trebuchet MS', sans-serif;
 }
 
+.leftPanel {
+  margin-right:9px;
+  padding:5px;
+  border-right: solid 1px grey;
+}
+
 .container {
   display:flex;
 }
