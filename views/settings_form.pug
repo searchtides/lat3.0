@@ -1,0 +1,20 @@
+html
+  head
+    style
+      include ./style.css
+    title= "Updating setting"
+  body
+    h1= "Set desired values"
+    form(action='/update_settings', method='POST' enctype="multipart/form-data")
+      div(class='container')
+        div
+          span Spam keywords threshold:
+          p
+          span Trend angle (degrees):
+        div
+          input(type='text' id="spamThreshold" name="spamThreshold" value=spamThreshold)
+          p
+          input(type='text' id="trendAngle" name="trendAngle" value=trendAngle)
+      p
+      input(type='submit', value='Submit')
+      a(href="/") Cancel

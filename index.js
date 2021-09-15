@@ -131,12 +131,12 @@ app.get('/process', (req, res) => {
   res.sendFile(path.join(__dirname, 'views/progress.html'))
 })
 
-app.get('/settings_updated', (req, res) => {
-  res.render('settings_updated')
+app.get('/client_settings_updated', (req, res) => {
+  res.render('client_settings_updated')
 })
 
 const trim = x => x.trim()
-app.post('/updating_settings', (req, res) => {
+app.post('/update_client_settings', (req, res) => {
   let { clientId, spam, keywords, drSettings, blackList } = req.body
   spam = spam.replace(/[\n|\r|]/g, ',').split(',').map(trim).filter(x => x)
   keywords = keywords.replace(/[\n|\r|,\s+]/g, ',').split(',').map(trim).filter(x => x)
@@ -146,11 +146,11 @@ app.post('/updating_settings', (req, res) => {
   const { clientName } = clientsMap[clientId]
   clientsMap[clientId] = { clientName, spam, keywords, drSettings, blackList }
   fs.writeFileSync(clientsMapPath, JSON.stringify(clientsMap))
-  res.redirect('/settings_updated')
+  res.redirect('/client_settings_updated')
 })
 
-app.get('/update_settings', (req, res) => {
-  res.render('update_settings')
+app.get('/update_client_settings', (req, res) => {
+  res.render('update_client_settings')
 })
 
 app.get('/client_exists', (req, res) => {
@@ -210,7 +210,7 @@ app.post('/second_step', (req, res) => {
     opts.keywords = opts.keywords.join('\n')
     opts.blackList = opts.blackList.join('\n')
     opts.drSettings = _.pairs(opts.drSettings).map(pair => pair[0] + '=' + pair[1]).join('\n')
-    res.render('update_settings', opts)
+    res.render('client_settings_form', opts)
   }
 })
 
