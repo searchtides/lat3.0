@@ -221,7 +221,7 @@ app.get('/load_attempt', (req, res) => {
   res.render('load_form', opts)
 })
 
-app.get('/get_settings', (req, res) => {
+app.get('/get_clients_settings', (req, res) => {
   const { clientId } = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
   const clientsMap = JSON.parse(fs.readFileSync(clientsMapPath, 'utf8'))
   const opts = { ...{ clientId }, ...clientsMap[clientId] }
@@ -239,7 +239,7 @@ app.post('/second_step', (req, res) => {
     res.redirect('load_attempt')
   }
   if (req.body.action === 'update') {
-    res.redirect('get_settings')
+    res.redirect('get_clients_settings')
   }
 })
 
