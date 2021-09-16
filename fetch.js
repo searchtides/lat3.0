@@ -25,7 +25,7 @@ async function fetch (domain) {
     cookies = await login(browser)
   }
   await page.setCookie(...cookies)
-  const startUrl = 'https://ahrefs.com/site-explorer/overview/v2/subdomains/live?target=' + domain
+  const startUrl = 'https://app.ahrefs.com/site-explorer/overview/v2/subdomains/live?target=' + domain
   await page.goto(startUrl)
   if (page.url() !== startUrl) {
     // session ended. Need to login again.

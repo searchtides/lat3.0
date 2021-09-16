@@ -2,7 +2,7 @@ const fs = require('fs').promises
 
 async function login (browser) {
   const page = await browser.newPage()
-  await page.goto('https://ahrefs.com/user/login')
+  await page.goto('https://app.ahrefs.com/user/login')
   await page.waitForSelector('input[name=email]')
   await page.type('input[name=email]', 'yuriy@searchtides.com')
   await page.waitForSelector('input[name=password]')
