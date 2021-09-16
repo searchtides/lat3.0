@@ -104,7 +104,6 @@ app.get('/results', (req, res) => {
   success.forEach(x => {
     x.kwds = _.keys(x.keywords).map(kwd => kwd + ':' + (x.keywords[kwd].right ? x.keywords[kwd].right : 'error')).join(', ')
   })
-  const journal = result.journal
   fs.writeFileSync('db/summary.json', JSON.stringify(summary))
   const typeOne = success.filter(x => x.us_tr >= 80 && !x.writeToUs && x.spam <= spamThreshold && x.angle >= trendAngle)
   fs.writeFileSync('db/typeOne.json', JSON.stringify(typeOne))
@@ -124,7 +123,14 @@ app.get('/results', (req, res) => {
         .catch(e => e)
     }
   }
+  res.redirect('/summary')
+})
+
+app.get('/summary', (req, res) => {
+  const result = JSON.parse(fs.readFileSync('db/result.json', 'utf8'))
   const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
+  const journal = result.journal
+  const success = result.success
   res.render('results', { records: success.length, success, ...task, journal })
 })
 
