@@ -214,19 +214,32 @@ app.get('/', (req, res) => {
   })
 })
 
-app.post('/second_step', (req, res) => {
-  const clientId = req.body.clientId
+app.get('/load_attempt', (req, res) => {
+  const { clientId } = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
   const clientsMap = JSON.parse(fs.readFileSync(clientsMapPath, 'utf8'))
   const opts = { ...{ clientId }, ...clientsMap[clientId] }
+  res.render('load_form', opts)
+})
+
+app.get('/get_settings', (req, res) => {
+  const { clientId } = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
+  const clientsMap = JSON.parse(fs.readFileSync(clientsMapPath, 'utf8'))
+  const opts = { ...{ clientId }, ...clientsMap[clientId] }
+  opts.spam = opts.spam.join('\n')
+  opts.keywords = opts.keywords.join('\n')
+  opts.blackList = opts.blackList.join('\n')
+  opts.drSettings = _.pairs(opts.drSettings).map(pair => pair[0] + '=' + pair[1]).join('\n')
+  res.render('client_settings_form', opts)
+})
+
+app.post('/second_step', (req, res) => {
+  const clientId = req.body.clientId
+  fs.writeFileSync('db/task.json', JSON.stringify({ clientId }))
   if (req.body.action === 'upload') {
-    res.render('load_form', opts)
+    res.redirect('load_attempt')
   }
   if (req.body.action === 'update') {
-    opts.spam = opts.spam.join('\n')
-    opts.keywords = opts.keywords.join('\n')
-    opts.blackList = opts.blackList.join('\n')
-    opts.drSettings = _.pairs(opts.drSettings).map(pair => pair[0] + '=' + pair[1]).join('\n')
-    res.render('client_settings_form', opts)
+    res.redirect('get_settings')
   }
 })
 
@@ -255,7 +268,7 @@ app.post('/load_file', (req, res) => {
         fs.writeFileSync('db/task.json', JSON.stringify(task))
         res.redirect('/process')
       } else {
-        // TODO show error message
+        res.render('loading_error')
       }
     })
   })
