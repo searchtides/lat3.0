@@ -132,10 +132,6 @@ app.get('/process', (req, res) => {
   res.sendFile(path.join(__dirname, 'views/progress.html'))
 })
 
-app.get('/client_settings_updated', (req, res) => {
-  res.render('client_settings_updated')
-})
-
 const trim = x => x.trim()
 app.post('/update_client_settings', (req, res) => {
   let { clientId, spam, keywords, drSettings, blackList } = req.body
@@ -147,7 +143,7 @@ app.post('/update_client_settings', (req, res) => {
   const { clientName } = clientsMap[clientId]
   clientsMap[clientId] = { clientName, spam, keywords, drSettings, blackList }
   fs.writeFileSync(clientsMapPath, JSON.stringify(clientsMap))
-  res.redirect('/client_settings_updated')
+  res.render('client_settings_updated', { clientName })
 })
 
 app.get('/get_settings', (req, res) => {
