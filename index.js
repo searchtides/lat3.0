@@ -98,19 +98,19 @@ app.post('/add_to_blacklist', (req, res) => {
 
 app.get('/results', (req, res) => {
   const result = JSON.parse(fs.readFileSync('db/result.json', 'utf8'))
+  const { spamThreshold, trendAngle } = JSON.parse(fs.readFileSync('db/settings.json', 'utf8'))
   const success = result.success
   const summary = success
   success.forEach(x => {
     x.kwds = _.keys(x.keywords).map(kwd => kwd + ':' + (x.keywords[kwd].right ? x.keywords[kwd].right : 'error')).join(', ')
   })
-  console.log(success)
   const journal = result.journal
   fs.writeFileSync('db/summary.json', JSON.stringify(summary))
-  const typeOne = success.filter(x => x.us_tr >= 80 && !x.writeToUs && x.spam === 0)
+  const typeOne = success.filter(x => x.us_tr >= 80 && !x.writeToUs && x.spam <= spamThreshold && x.angle >= trendAngle)
   fs.writeFileSync('db/typeOne.json', JSON.stringify(typeOne))
   const typeTwo = success.filter(x => x.us_tr >= 80 && x.writeToUs)
   fs.writeFileSync('db/typeTwo.json', JSON.stringify(typeTwo))
-  const typeThree = success.filter(x => x.spam > 0 || x.us_tr < 80)
+  const typeThree = success.filter(x => x.us_tr < 80 || x.angle < trendAngle || x.spam > spamThreshold)
   fs.writeFileSync('db/typeThree.json', JSON.stringify(typeThree))
   const failed = result.fails.map(x => x.left)
   const failedFilename = 'db/failed'
