@@ -18,7 +18,7 @@ const send = require('./mailer').send
 
 const wss = new WebSocketServer({ port: 8080 })
 
-let _ws, uploadPath
+let _ws, uploadPath, t1, t2
 const js = (x) => JSON.stringify(x)
 
 wss.on('connection', (ws) => {
@@ -27,6 +27,7 @@ wss.on('connection', (ws) => {
     const message = buffer.toString()
     ws.send(js({ type: 'message', data: message }))
   })
+  t1 = new Date().getTime()
   const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
   const urls = task.whiteList
   const clientsMap = JSON.parse(fs.readFileSync(clientsMapPath, 'utf8'))
@@ -97,6 +98,8 @@ app.post('/add_to_blacklist', (req, res) => {
 })
 
 app.get('/results', (req, res) => {
+  t2 = new Date().getTime()
+  const elapsed = ((t2 - t1) / 1000).toFixed(0)
   const result = JSON.parse(fs.readFileSync('db/result.json', 'utf8'))
   const { spamThreshold, trendAngle } = JSON.parse(fs.readFileSync('db/settings.json', 'utf8'))
   // converting non fatal errors to human readable form
@@ -104,6 +107,7 @@ app.get('/results', (req, res) => {
     x.kwds = _.keys(x.keywords).map(kwd => kwd + ':' + (x.keywords[kwd].right ? x.keywords[kwd].right : 'error')).join(', ')
     x.spam = x.maybeSpam.left ? 'error' : x.maybeSpam.right
   })
+  result.elapsed = elapsed
   fs.writeFileSync('db/hr_result.json', JSON.stringify(result))// saving results in human readable form
   const success = result.success
   fs.writeFileSync('db/summary.json', JSON.stringify(success))
@@ -133,7 +137,8 @@ app.get('/summary', (req, res) => {
   const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
   const journal = result.journal
   const success = result.success
-  res.render('results', { records: success.length, success, ...task, journal })
+  const elapsed = result.elapsed
+  res.render('results', { records: success.length, success, ...task, journal, elapsed })
 })
 
 app.get('/process', (req, res) => {
