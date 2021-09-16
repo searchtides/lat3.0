@@ -66,10 +66,9 @@ const serial = (funcs, logger) =>
   }
   , Promise.resolve([]))
 
-let failed = []
-const journal = {}
-
 const batch = (task, clientsMap, logger) => {
+  let failed = []
+  const journal = {}
   const urls = task.whiteList
   const clientId = task.clientId
   const clientSettings = clientsMap[clientId]
