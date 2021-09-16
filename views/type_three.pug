@@ -20,6 +20,8 @@ html
           th TR
           th US Traffic
           th Spam
+          th Trend angle
+          th Keywords
       each x in xs
         tr
           td  #{x.url}
@@ -27,5 +29,7 @@ html
           td  #{x.tr}
           td  #{x.us_tr}
           td  #{x.spam}
+          td  #{x.angle}
+          td  #{x.kwds}
   else
     div No records

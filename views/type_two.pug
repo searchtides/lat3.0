@@ -18,10 +18,21 @@ html
           th Url
           th DR
           th TR
+          th US Traffic
+          th Write for us
+          th Spam
+          th Trend angle
+          th Keywords
+ 
       each x in xs
         tr
           td  #{x.url}
           td  #{x.dr}
           td  #{x.tr}
+          td  #{x.us_tr}
+          td  #{x.writeToUs}
+          td  #{x.spam}
+          td  #{x.angle}
+          td  #{x.kwds}
   else
     div No records
