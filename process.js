@@ -79,11 +79,11 @@ const batch = (task, clientsMap, logger) => {
   const detectSpam = (x) => {
     return totalResults(x, spam)
       .then(n => {
-        return Promise.resolve({ right: { ...x, spam: n } })
+        return Promise.resolve({ right: { ...x, maybeSpam: { right: n } } })
       })
       .catch((error) => {
         const e = JSON.stringify(error, Object.getOwnPropertyNames(error))
-        return Promise.resolve({ left: { message: 'error during spam detection', url: x.url, e } })
+        return Promise.resolve({ right: { ...x, maybeSpam: { left: e } } })
       })
   }
 
