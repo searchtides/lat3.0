@@ -260,7 +260,8 @@ app.post('/load_file', (req, res) => {
       const headers = xs.shift().map(x => x.toLowerCase())
       const idx = headers.indexOf('url')
       if (idx > -1) {
-        const urls = _.unique(xs.map(x => extractDomain(x[idx])))
+        const regexp = /http|\//
+        const urls = _.unique(xs.map(x => regexp.test(x[idx]) ? extractDomain(x[idx]) : x[idx]))
         const blackList = clientsMap[clientId].blackList
         const blackMap = _.object(blackList, blackList)
         const whiteList = urls.filter(url => blackMap[url] === undefined)
