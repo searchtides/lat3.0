@@ -5,7 +5,7 @@ html
     title= "Summary"
   a(href='/') Go to start
   h1 Client: #{clientName}
-  div Total processed: #{journal.total}
+  div Total processed: #{journal.total} in #{elapsed} seconds
   div Non English: #{journal.non_eng}
   div Metrics passed: #{journal.metrics_passed}
   div Failed to process: #{journal.failed}
