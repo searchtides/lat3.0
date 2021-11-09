@@ -11,7 +11,7 @@ exports.evaluated_content = (url, filename) => {
       })
       .then(page => {
         _page = page
-        return _page.goto(url, { waitUntil: 'networkidle2', timeout: 20000 })
+        return _page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
       })
       .then(() => {
         return _page.evaluate(() => document.querySelector('*').outerHTML)
