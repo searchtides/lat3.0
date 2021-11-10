@@ -1,0 +1,26 @@
+html
+  head
+    style
+      include ./style.css
+    title= "Reports"
+  a(href='/') Go to start
+  p
+  table
+    tr
+      th Timestamp
+      th Total
+      th Succeed
+      th Rejected
+      th Failed
+      th Elapsed Time
+    each x in xs
+      tr
+        td  #{x.timestamp}
+        td  #{x.total}
+        td 
+          a(href=`${x.succeedUrl}`) #{x.succeed}
+        td 
+          a(href=`${x.rejectedUrl}`) #{x.rejected}
+        td
+          a(href=`${x.failedUrl}`) #{x.failed}
+        td #{x.elapsedTime}

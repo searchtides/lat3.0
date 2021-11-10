@@ -1,5 +1,6 @@
 require('dotenv').config()
 const util = require('util')
+const { rearrangeResults, translateToVh } = require('./modules/utils')
 const path = require('path')
 const fs = require('fs')
 const fsa = require('fs').promises
@@ -12,36 +13,93 @@ const parse = util.promisify(require('csv-parse'))
 const _ = require('underscore')
 const extractDomain = require('extract-domain')
 const { v4: uuidv4 } = require('uuid')
-const processBatch = require('./process').batch
 const clientsMapPath = 'db/clients_map.json'
 const send = require('./mailer').send
+const qualifier = require('./modules/qualifier')
+const keysN = x => Object.keys(x).length
+const validFs = x => x.replace(/:|T/g, '-')
 
 const wss = new WebSocketServer({ port: 8080 })
 
-let _ws, uploadPath, t1, t2
+let uploadPath, t1, t2
 const js = (x) => JSON.stringify(x)
 
 wss.on('connection', (ws) => {
-  _ws = ws
   ws.on('message', (buffer) => {
     const message = buffer.toString()
     ws.send(js({ type: 'message', data: message }))
   })
   t1 = new Date().getTime()
   const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
-  const urls = task.whiteList
-  const clientsMap = JSON.parse(fs.readFileSync(clientsMapPath, 'utf8'))
-  _ws.send(js({ type: 'total', data: urls.length }))
-  processBatch(task, clientsMap, x => ws.send(x))
-    .then((result) => {
-      ws.send(js({ type: 'finish', data: result }))
-      fs.writeFileSync('db/result.json', JSON.stringify(result))
+  const clientId = task.clientId
+  const domains = task.whiteList
+  const clientSettings = _.pick(task, 'drSettings', 'spam', 'keywords')
+  const logger = (x) => ws.send(JSON.stringify(x))
+  qualifier({ clientId, clientSettings, domains, logger })
+    .then((res) => {
+      const h = rearrangeResults(res)
+      ws.send(js({ type: 'finish', data: res }))
+      const t = new Date()
+      const t2 = t.getTime()
+      const timestamp = t.toISOString().split('.')[0]
+      const root = timestamp.replace(/:|T/g, '-')
+      const filename = path.join(__dirname, '../results/' + root + '.json')
+      res.right.timestamp = timestamp
+      res.right.elapsedTime = Math.ceil((t2 - t1) / 1000)
+      fs.writeFileSync(filename, JSON.stringify(h))
     })
 })
 
 app.use(fileUpload())
 app.set('view engine', 'pug')
 app.set('views', './views')
+
+app.get('/reports', (req, res) => {
+  fs.readdir('./results', (err, files) => {
+    if (err) { res.send('filesystem error') }
+    const xs = files.map(file => {
+      const filename = path.join(__dirname, 'results', file)
+      return JSON.parse(fs.readFileSync(filename, 'utf-8'))
+    })
+    const rs = xs.map(x => x.right).filter(x => x)
+    const ys = rs.map(x => {
+      const succeed = keysN(x.succeed)
+      const rejected = keysN(x.rejected)
+      const failed = keysN(x.failed)
+      return {
+        timestamp: x.timestamp,
+        succeed,
+        succeedUrl: '/reports/succeed/' + x.timestamp,
+        rejected,
+        rejectedUrl: '/reports/rejected/' + x.timestamp,
+        failed,
+        failedUrl: '/reports/failed/' + x.timestamp,
+        elapsedTime: x.elapsedTime,
+        total: succeed + rejected + failed
+      }
+    })
+    res.render('reports', { xs: ys })
+  })
+})
+
+app.get('/reports/succeed/:reportId', (req, res) => {
+  const { reportId } = req.params
+  const filename = validFs(reportId) + '.json'
+  const fullname = path.join(__dirname, 'results', filename)
+  const txt = fs.readFileSync(fullname, 'utf8')
+  const h = JSON.parse(txt)
+  const nh = rearrangeResults(h)
+  const vh = translateToVh(nh.right.succeed)
+  res.render('success', { records: vh.length, success: vh })
+})
+
+app.get('/reports/rejected/:reportId', (req, res) => {
+  res.send(req.params)
+})
+
+app.get('/reports/failed/:reportId', (req, res) => {
+  res.send(req.params)
+})
 
 app.get('/result_failed', (req, res) => {
   const xs = JSON.parse(fs.readFileSync('db/failed.json', 'utf8'))

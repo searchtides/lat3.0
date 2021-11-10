@@ -1,0 +1,42 @@
+html
+  head
+    style
+      include ./style.css
+    title= "Summary"
+  a(href='/') Go to start
+  h1 Client: #{clientName}
+  p
+    a(class='selected' href='/summary') Summary
+    a(href='/result_type_one') Type I
+    a(href='/result_type_two') Type II
+    a(href='/result_type_three') Type III
+  form(action='/add_to_blacklist', method='POST' enctype="multipart/form-data")
+    if records > 0
+      div
+        a(class='download' href='/download?filename=summary') Download
+        input(class='blacklist' type='submit', value='Add to black list')
+      table
+        tr
+          th Blacklist
+          th Url
+          th DR
+          th TR
+          th US Traffic
+          th Write for us
+          th Spam
+          th Trend angle
+          th Keywords
+        each x in success
+          tr
+            td
+              input(type='checkbox' id=x.url name=x.url)
+            td  #{x.domain}
+            td  #{x.dr}
+            td  #{x.tr}
+            td  #{x.us_tr}
+            td  #{x.writeToUs}
+            td  #{x.spamFound}
+            td  #{x.coef}
+            td  #{x.keywords}
+    else
+      div No records
