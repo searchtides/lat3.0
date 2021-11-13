@@ -9,7 +9,7 @@ const detectSpam = (domain, spam) => {
     })
     .catch((error) => {
       const e = JSON.stringify(error, Object.getOwnPropertyNames(error))
-      return Promise.resolve({ left: { url: domain, e } })
+      return Promise.resolve({ left: { url: domain, error: e, message: 'error during spam detection' } })
     })
 }
 

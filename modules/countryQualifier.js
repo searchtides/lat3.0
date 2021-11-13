@@ -34,7 +34,7 @@ const getCountry = (domain) => {
     })
     .catch((error) => {
       const e = JSON.stringify(error, Object.getOwnPropertyNames(error))
-      return Promise.resolve({ left: { message: 'error during country detection', url: domain, e } })
+      return Promise.resolve({ left: { message: 'error during country detection', url: domain, error: e } })
     })
 }
 

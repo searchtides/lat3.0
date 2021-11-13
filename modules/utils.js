@@ -2,36 +2,42 @@ const _ = require('lodash')
 const keys = x => Object.keys(x)
 
 // ::SuccessMap->[SuccessReportRow]
-const translateToVh = h => {
+const translateSucceedToVh = h => {
   return keys(h).map(domain => {
-    const kwMap = h[domain]['keywordsMap']
-    const keywords = keys(kwMap).map(k=>[k, kwMap[k].right].join(': ')).join(', ')
-    const row = _.extend({}, {domain, keywords}, _.omit(h[domain], 'keywordsMap'));
+    const kwMap = h[domain].keywordsMap
+    const keywords = keys(kwMap).map(k => [k, kwMap[k].right].join(': ')).join(', ')
+    const row = _.extend({}, { domain, keywords }, _.omit(h[domain], 'keywordsMap'))
     return row
   })
 }
 
-const rearrangeResults = h => {
+const rearrangeResults = (h, angle) => {
   const containLeft = kwMap => {
-    const xs = keys(kwMap).map(k=>kwMap[k].left)
-    return _.some(xs, x=>x)
+    const xs = keys(kwMap).map(k => kwMap[k].left)
+    return _.some(xs, x => x)
   }
   const res = {}
   if (h.right) {
     const succeed = {}
+    const rejected = {}
     const failed = {}
     keys(h.right.succeed).forEach(domain => {
+      h.right.succeed[domain].angle = (Math.atan(h.right.succeed[domain].coef) * 180) / Math.PI
       const left = containLeft(h.right.succeed[domain].keywordsMap)
       if (left) {
         failed[domain] = h.right.succeed[domain]
       } else {
-        succeed[domain] = h.right.succeed[domain]
+        if (h.right.succeed[domain].angle >= angle) {
+          succeed[domain] = h.right.succeed[domain]
+        } else {
+          rejected[domain] = h.right.succeed[domain]
+        }
       }
     })
-    res.right = {}
+    res.right = _.extend({}, _.omit(h.right, 'succeed', 'failed'))
     res.right.succeed = succeed
+    res.right.rejected = _.extend({}, h.right.rejected, rejected)
     res.right.failed = _.extend({}, h.right.failed, failed)
-    res.right.rejected = h.right.rejected
     return res
   } else {
     res.left = h.left
@@ -95,4 +101,4 @@ exports.makeMap = makeMap
 exports.serial = serial
 exports.rearrangeResults = rearrangeResults
 exports.keys = keys
-exports.translateToVh = translateToVh
+exports.translateSucceedToVh = translateSucceedToVh

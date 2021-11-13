@@ -8,6 +8,7 @@ html
   table
     tr
       th Timestamp
+      th Client name
       th Total
       th Succeed
       th Rejected
@@ -16,6 +17,7 @@ html
     each x in xs
       tr
         td  #{x.timestamp}
+        td  #{x.clientName}
         td  #{x.total}
         td 
           a(href=`${x.succeedUrl}`) #{x.succeed}

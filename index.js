@@ -1,6 +1,6 @@
 require('dotenv').config()
 const util = require('util')
-const { rearrangeResults, translateToVh } = require('./modules/utils')
+const { rearrangeResults, translateSucceedToVh, keys } = require('./modules/utils')
 const path = require('path')
 const fs = require('fs')
 const fsa = require('fs').promises
@@ -32,6 +32,7 @@ wss.on('connection', (ws) => {
   t1 = new Date().getTime()
   const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
   const clientId = task.clientId
+  const clientName = task.clientName
   const domains = task.whiteList
   const clientSettings = _.pick(task, 'drSettings', 'spam', 'keywords')
   const logger = (x) => ws.send(JSON.stringify(x))
@@ -43,9 +44,11 @@ wss.on('connection', (ws) => {
       const t2 = t.getTime()
       const timestamp = t.toISOString().split('.')[0]
       const root = timestamp.replace(/:|T/g, '-')
-      const filename = path.join(__dirname, '../results/' + root + '.json')
-      res.right.timestamp = timestamp
-      res.right.elapsedTime = Math.ceil((t2 - t1) / 1000)
+      const filename = path.join(__dirname, 'results/' + root + '.json')
+      h.right.timestamp = timestamp
+      h.right.elapsedTime = Math.ceil((t2 - t1) / 1000)
+      h.right.clientId = clientId
+      h.right.clientName = clientName
       fs.writeFileSync(filename, JSON.stringify(h))
     })
 })
@@ -75,7 +78,8 @@ app.get('/reports', (req, res) => {
         failed,
         failedUrl: '/reports/failed/' + x.timestamp,
         elapsedTime: x.elapsedTime,
-        total: succeed + rejected + failed
+        total: succeed + rejected + failed,
+        clientName: x.clientName
       }
     })
     res.render('reports', { xs: ys })
@@ -88,17 +92,43 @@ app.get('/reports/succeed/:reportId', (req, res) => {
   const fullname = path.join(__dirname, 'results', filename)
   const txt = fs.readFileSync(fullname, 'utf8')
   const h = JSON.parse(txt)
-  const nh = rearrangeResults(h)
-  const vh = translateToVh(nh.right.succeed)
-  res.render('success', { records: vh.length, success: vh })
+  const clientName = h.right.clientName
+  const vh = translateSucceedToVh(h.right.succeed).map(h => {
+    h.angle = h.angle.toFixed(1)
+    h.coef = h.coef.toFixed(2)
+    return h
+  })
+  res.render('success', { records: vh.length, success: vh, clientName })
 })
 
 app.get('/reports/rejected/:reportId', (req, res) => {
-  res.send(req.params)
+  const { reportId } = req.params
+  const filename = validFs(reportId) + '.json'
+  const fullname = path.join(__dirname, 'results', filename)
+  const txt = fs.readFileSync(fullname, 'utf8')
+  const h = JSON.parse(txt)
+  const clientName = h.right.clientName
+  const xs = keys(h.right.rejected).map(domain => {
+    const rej = h.right.rejected[domain]
+    const english = (rej.english).toFixed(1)
+    return _.extend(h.right.rejected[domain], { domain, english })
+  })
+  res.render('rejected', { records: xs.length, xs, clientName })
 })
 
 app.get('/reports/failed/:reportId', (req, res) => {
-  res.send(req.params)
+  const { reportId } = req.params
+  const filename = validFs(reportId) + '.json'
+  const fullname = path.join(__dirname, 'results', filename)
+  const txt = fs.readFileSync(fullname, 'utf8')
+  const h = JSON.parse(txt)
+  const clientName = h.right.clientName
+  const xs = keys(h.right.failed).map(domain => {
+    const fail = h.right.failed[domain]
+    console.log(keys(fail))
+    return _.extend(fail, { domain })
+  })
+  res.render('failed', { records: xs.length, xs, clientName })
 })
 
 app.get('/result_failed', (req, res) => {
