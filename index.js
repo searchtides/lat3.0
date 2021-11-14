@@ -132,7 +132,6 @@ app.get('/reports/failed/:reportId', (req, res) => {
   const clientName = h.right.clientName
   const xs = keys(h.right.failed).map(domain => {
     const fail = h.right.failed[domain]
-    console.log(keys(fail))
     return _.extend(fail, { domain })
   })
   res.render('failed', { records: xs.length, xs, clientName })
