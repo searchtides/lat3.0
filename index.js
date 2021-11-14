@@ -67,10 +67,12 @@ app.get('/', async (req, res) => {
 app.get('/reports', (req, res) => {
   fs.readdir('./results', (err, files) => {
     if (err) { res.send('filesystem error') }
-    const xs = files.map(file => {
-      const filename = path.join(__dirname, 'results', file)
-      return JSON.parse(fs.readFileSync(filename, 'utf-8'))
-    })
+    const xs = files
+      .filter(file => file !== '.gitkeep')
+      .map(file => {
+        const filename = path.join(__dirname, 'results', file)
+        return JSON.parse(fs.readFileSync(filename, 'utf-8'))
+      })
     const rs = xs.map(x => x.right).filter(x => x)
     const ys = rs.map(x => {
       const succeed = keysN(x.succeed)

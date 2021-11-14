@@ -1,3 +1,7 @@
+datasets/
+results/*.*
+!/results/.gitkeep
+temp/
 .*
 !.gitignore
 node_modules/
