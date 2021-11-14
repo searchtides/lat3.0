@@ -1,3 +1,4 @@
+require('dotenv').config()
 const extractDomain = require('extract-domain')
 const fs = require('fs').promises
 const util = require('util')
@@ -6,6 +7,13 @@ const path = require('path')
 const _ = require('underscore')
 const { v4: uuidv4 } = require('uuid')
 const clientsMapPath = path.join(__dirname, '../db/clients_map.json')
+
+async function getQuotasRemaining () {
+  const apiKeysN = process.env.API_KEYS.split(',').length * 100
+  const txt = await fs.readFile(path.join(__dirname, '../db/requests.json'), 'utf8')
+  const requests = Number(txt.split(' ')[1])
+  return { serp: apiKeysN - requests }
+}
 
 async function updateTask (clientId, sampleFile) {
   const clientsMap = JSON.parse(await fs.readFile(clientsMapPath, 'utf8'))
@@ -82,3 +90,4 @@ exports.addClient = addClient
 exports.createTask = createTask
 exports.getClientFromTask = getClientFromTask
 exports.updateTask = updateTask
+exports.getQuotasRemaining = getQuotasRemaining

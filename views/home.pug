@@ -3,8 +3,11 @@ html
     style
       include ./style.css
     title= "Selecting client"
+  div Requests to Google left: #{quotas.serp}
+  p
   div(class='container')
     div(class='leftPanel')
+      p
       a(href='get_settings') Settings
       p
       a(href="/add_client") Add client

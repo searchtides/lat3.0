@@ -56,8 +56,9 @@ app.set('views', './views')
 
 app.get('/', async (req, res) => {
   const clientsList = await appService.getClients()
+  const quotas = await appService.getQuotasRemaining()
   if (clientsList.length) {
-    res.render('client_selection', { xs: clientsList })
+    res.render('home', { xs: clientsList, quotas })
   } else {
     res.redirect('/add_client')
   }
