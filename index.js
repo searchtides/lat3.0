@@ -107,7 +107,7 @@ app.get('/reports/succeed/:reportId', (req, res) => {
     h.coef = h.coef.toFixed(2)
     return h
   })
-  res.render('success', { records: vh.length, success: vh, clientName })
+  res.render('success', { records: vh.length, success: vh, clientName, reportId })
 })
 
 app.get('/reports/rejected/:reportId', (req, res) => {
@@ -122,7 +122,7 @@ app.get('/reports/rejected/:reportId', (req, res) => {
     const english = (rej.english).toFixed(1)
     return _.extend(h.right.rejected[domain], { domain, english })
   })
-  res.render('rejected', { records: xs.length, xs, clientName })
+  res.render('rejected', { records: xs.length, xs, clientName, reportId })
 })
 
 app.get('/reports/failed/:reportId', (req, res) => {
@@ -136,7 +136,7 @@ app.get('/reports/failed/:reportId', (req, res) => {
     const fail = h.right.failed[domain]
     return _.extend(fail, { domain })
   })
-  res.render('failed', { records: xs.length, xs, clientName })
+  res.render('failed', { records: xs.length, xs, clientName, reportId })
 })
 
 app.get('/result_failed', (req, res) => {
@@ -179,18 +179,10 @@ app.get('/download', (req, res) => {
   res.download(filename + '.csv', root + '.csv')
 })
 
-app.post('/add_to_blacklist', (req, res) => {
-  const clientsMap = JSON.parse(fs.readFileSync(clientsMapPath, 'utf8'))
-  const { clientId } = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
-  const result = JSON.parse(fs.readFileSync('db/result.json', 'utf8'))
-  const xs = Object.keys(req.body)
-  clientsMap[clientId].blackList = _.unique(clientsMap[clientId].blackList.concat(xs))
-  fs.writeFileSync(clientsMapPath, JSON.stringify(clientsMap))
-  const blackMap = _.object(xs, xs)
-  const filtered = result.success.filter(x => blackMap[x.url] === undefined)
-  result.success = filtered
-  fs.writeFileSync('db/result.json', JSON.stringify(result))
-  res.redirect('/results')
+app.post('/add_to_blacklist', async (req, res) => {
+  const { reportId, type } = req.body
+  await appService.addToBlackList(req.body)
+  res.redirect('/reports/' + type + '/' + reportId)
 })
 
 app.get('/results', (req, res) => {

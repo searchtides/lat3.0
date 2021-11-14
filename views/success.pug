@@ -13,6 +13,9 @@ html
   h1 Client: #{clientName}
   p
     a(class='selected' href='/summary') Summary
+  form(action='/add_to_blacklist', method='POST' enctype="multipart/form-data")
+    input(class='hidden' name='reportId' value=reportId)
+    input(class='hidden' name='type' value='succeed')
     if records > 0
       div
         a(class='download' href='/download?filename=summary') Download
@@ -31,7 +34,7 @@ html
         each x in success
           tr
             td
-              input(type='checkbox' id=x.url name=x.url)
+              input(type='checkbox' id=x.domain name=x.domain)
             td  #{x.domain}
             td  #{x.dr}
             td  #{x.tr}

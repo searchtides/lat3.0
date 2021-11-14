@@ -8,6 +8,24 @@ const _ = require('underscore')
 const { v4: uuidv4 } = require('uuid')
 const clientsMapPath = path.join(__dirname, '../db/clients_map.json')
 
+async function addToBlackList (h) {
+  const { reportId, type } = h
+  const domains = _.keys(_.omit(h, 'reportId', 'type'))
+  const root = reportId.replace(/:|T/g, '-')
+  const reportFilename = path.join(__dirname, '../results/', root + '.json')
+  const report = JSON.parse(await fs.readFile(reportFilename, 'utf8'))
+  const clientId = report.right.clientId
+  const clientsMap = JSON.parse(await fs.readFile(clientsMapPath, 'utf8'))
+  const nextBlackList = clientsMap[clientId].blackList.concat(domains)
+  clientsMap[clientId].blackList = _.unique(nextBlackList)
+  await fs.writeFile(clientsMapPath, JSON.stringify(clientsMap))
+  const rest = _.omit(report.right[type], domains)
+  const toMove = _.pick(report.right[type], domains)
+  report.right[type] = rest
+  report.right.blacklisted = toMove
+  await fs.writeFile(reportFilename, JSON.stringify(report))
+}
+
 async function getQuotasRemaining () {
   const apiKeysN = process.env.API_KEYS.split(',').length * 100
   const txt = await fs.readFile(path.join(__dirname, '../db/requests.json'), 'utf8')
@@ -91,3 +109,4 @@ exports.createTask = createTask
 exports.getClientFromTask = getClientFromTask
 exports.updateTask = updateTask
 exports.getQuotasRemaining = getQuotasRemaining
+exports.addToBlackList = addToBlackList

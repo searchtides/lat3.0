@@ -24,6 +24,10 @@ input[type=text] {
  display:none;
 }
 
+.hidden {
+ display:none;
+}
+
 input[type=submit] {
   padding:5px 10px;
   background:dodgerblue;

@@ -13,6 +13,9 @@ html
   h1 Client: #{clientName}
   p
     a(class='selected' href='/summary') Summary
+  form(action='/add_to_blacklist', method='POST' enctype="multipart/form-data")
+    input(class='hidden' name='reportId' value=reportId)
+    input(class='hidden' name='type' value='failed')
     if records > 0
       div
         a(class='download' href='/download?filename=summary') Download
