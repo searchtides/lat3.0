@@ -1,4 +1,5 @@
 require('dotenv').config()
+const appService = require('./services/appService')
 const util = require('util')
 const { rearrangeResults, translateSucceedToVh, keys } = require('./modules/utils')
 const path = require('path')
@@ -56,6 +57,15 @@ wss.on('connection', (ws) => {
 app.use(fileUpload())
 app.set('view engine', 'pug')
 app.set('views', './views')
+
+app.get('/', async (req, res) => {
+  const clientsList = await appService.getClients()
+  if (clientsList.length) {
+    res.render('client_selection', { xs: clientsList })
+  } else {
+    res.redirect('/add_client')
+  }
+})
 
 app.get('/reports', (req, res) => {
   fs.readdir('./results', (err, files) => {
@@ -301,18 +311,6 @@ app.post('/client_added', (req, res) => {
 
 app.get('/add_client', (req, res) => {
   res.render('add_client')
-})
-
-app.get('/', (req, res) => {
-  fs.readFile(clientsMapPath, 'utf8', (err, data) => {
-    if (err) {
-      res.redirect('/add_client')
-    } else {
-      const clientsMap = JSON.parse(data)
-      const opts = Object.keys(clientsMap).map(id => { return { id, name: clientsMap[id].clientName } })
-      res.render('client_selection', { xs: opts })
-    }
-  })
 })
 
 app.get('/load_attempt', (req, res) => {
