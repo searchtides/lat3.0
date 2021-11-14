@@ -13,7 +13,6 @@ const WebSocketServer = require('ws').WebSocketServer
 const parse = util.promisify(require('csv-parse'))
 const _ = require('underscore')
 const extractDomain = require('extract-domain')
-const { v4: uuidv4 } = require('uuid')
 const clientsMapPath = 'db/clients_map.json'
 const send = require('./mailer').send
 const qualifier = require('./modules/qualifier')
@@ -284,29 +283,9 @@ app.get('/client_exists', (req, res) => {
   res.render('client_exists')
 })
 
-app.post('/client_added', (req, res) => {
-  const clientName = req.body.clientName
-  let clientsMap = {}
-  const emptyRecord = { clientName, spam: [], keywords: [], blackList: [], drSettings: {} }
-  fs.readFile(clientsMapPath, 'utf8', (err, data) => {
-    const id = uuidv4()
-    if (err) {
-      clientsMap[id] = emptyRecord
-      fs.writeFileSync(clientsMapPath, JSON.stringify(clientsMap))
-      res.redirect('/')
-    } else {
-      clientsMap = JSON.parse(data)
-      const names = Object.keys(clientsMap).map(id => clientsMap[id].clientName)
-      if (names.indexOf(clientName) > -1) {
-        // client with such name already exists
-        res.redirect('/client_exists')
-      } else {
-        clientsMap[id] = emptyRecord
-        fs.writeFileSync(clientsMapPath, JSON.stringify(clientsMap))
-        res.redirect('/')
-      }
-    }
-  })
+app.post('/client_added', async (req, res) => {
+  const addingAttempt = await appService.addClient(req.body.clientName)
+  if (addingAttempt) { res.redirect('/') } else { res.redirect('/client_exists') }
 })
 
 app.get('/add_client', (req, res) => {
