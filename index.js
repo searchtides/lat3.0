@@ -1,6 +1,5 @@
 require('dotenv').config()
 const appService = require('./services/appService')
-const util = require('util')
 const { rearrangeResults, translateSucceedToVh, keys } = require('./modules/utils')
 const path = require('path')
 const fs = require('fs')
@@ -10,9 +9,7 @@ const fileUpload = require('express-fileupload')
 const app = express()
 const port = 3000
 const WebSocketServer = require('ws').WebSocketServer
-const parse = util.promisify(require('csv-parse'))
 const _ = require('underscore')
-const extractDomain = require('extract-domain')
 const clientsMapPath = 'db/clients_map.json'
 const send = require('./mailer').send
 const qualifier = require('./modules/qualifier')
@@ -21,7 +18,7 @@ const validFs = x => x.replace(/:|T/g, '-')
 
 const wss = new WebSocketServer({ port: 8080 })
 
-let uploadPath, t1, t2
+let t1, t2
 const js = (x) => JSON.stringify(x)
 
 wss.on('connection', (ws) => {
@@ -292,10 +289,8 @@ app.get('/add_client', (req, res) => {
   res.render('add_client')
 })
 
-app.get('/load_attempt', (req, res) => {
-  const { clientId } = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
-  const clientsMap = JSON.parse(fs.readFileSync(clientsMapPath, 'utf8'))
-  const opts = { ...{ clientId }, ...clientsMap[clientId] }
+app.get('/load_attempt', async (req, res) => {
+  const opts = await appService.getClientFromTask()
   res.render('load_form', opts)
 })
 
@@ -310,9 +305,8 @@ app.get('/get_clients_settings', (req, res) => {
   res.render('client_settings_form', opts)
 })
 
-app.post('/second_step', (req, res) => {
-  const clientId = req.body.clientId
-  fs.writeFileSync('db/task.json', JSON.stringify({ clientId }))
+app.post('/second_step', async (req, res) => {
+  await appService.createTask(req.body.clientId)
   if (req.body.action === 'upload') {
     res.redirect('load_attempt')
   }
@@ -321,36 +315,16 @@ app.post('/second_step', (req, res) => {
   }
 })
 
-app.post('/load_file', (req, res) => {
+app.post('/load_file', async (req, res) => {
   if (!req.files || Object.keys(req.files).length === 0) {
     return res.status(400).send('No files were uploaded.')
   }
-  const clientId = req.body.clientId
-  const clientsMap = JSON.parse(fs.readFileSync(clientsMapPath, 'utf8'))
-  // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
-  const sampleFile = req.files.myfile
-  uploadPath = path.join(__dirname, '/uploads/', sampleFile.name)
-  // Use the mv() method to place the file somewhere on your server
-  sampleFile.mv(uploadPath, function (err) {
-    if (err) return res.status(500).send(err)
-    const text = fs.readFileSync(uploadPath, { encoding: 'utf8', flag: 'r' })
-    parse(text).then(xs => {
-      const headers = xs.shift().map(x => x.toLowerCase())
-      const idx = headers.indexOf('url')
-      if (idx > -1) {
-        const regexp = /http|\//
-        const urls = _.unique(xs.map(x => regexp.test(x[idx]) ? extractDomain(x[idx]) : x[idx]))
-        const blackList = clientsMap[clientId].blackList
-        const blackMap = _.object(blackList, blackList)
-        const whiteList = urls.filter(url => blackMap[url] === undefined)
-        const task = { ...{ clientId }, ...clientsMap[clientId], ...{ whiteList } }
-        fs.writeFileSync('db/task.json', JSON.stringify(task))
-        res.redirect('/process')
-      } else {
-        res.render('loading_error')
-      }
-    })
-  })
+  const { err } = await appService.updateTask(req.body.clientId, req.files.myfile)
+  if (err) {
+    res.render('loading_error', { err })
+  } else {
+    res.redirect('/process')
+  }
 })
 
 app.listen(port, () => {
