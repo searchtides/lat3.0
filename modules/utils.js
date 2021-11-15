@@ -1,11 +1,19 @@
 const _ = require('lodash')
 const keys = x => Object.keys(x)
 
+const prettyView = xs => {
+  return xs.map(h => {
+    h.angle = h.angle.toFixed(1)
+    h.coef = h.coef.toFixed(2)
+    return h
+  })
+}
+
 // ::SuccessMap->[SuccessReportRow]
 const translateSucceedToVh = h => {
   return keys(h).map(domain => {
     const kwMap = h[domain].keywordsMap
-    const keywords = keys(kwMap).map(k => [k, kwMap[k].right].join(': ')).join(', ')
+    const keywords = keys(kwMap).map(k => [k, kwMap[k].right].join(': ')).join('; ')
     const row = _.extend({}, { domain, keywords }, _.omit(h[domain], 'keywordsMap'))
     return row
   })
@@ -102,3 +110,4 @@ exports.serial = serial
 exports.rearrangeResults = rearrangeResults
 exports.keys = keys
 exports.translateSucceedToVh = translateSucceedToVh
+exports.prettyView = prettyView

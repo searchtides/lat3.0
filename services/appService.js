@@ -8,6 +8,28 @@ const _ = require('underscore')
 const { v4: uuidv4 } = require('uuid')
 const clientsMapPath = path.join(__dirname, '../db/clients_map.json')
 
+function genSuccessTabs (subtype, reportId) {
+  const tabs = [
+    { name: 'Summary', subtype: 'summary', link: 'reports/succeed/summary/' + reportId },
+    { name: 'Type I', subtype: 'typeOne', link: 'reports/succeed/typeOne/' + reportId },
+    { name: 'Type II', subtype: 'typeTwo', link: 'reports/succeed/typeTwo/' + reportId },
+    { name: 'Type III', subtype: 'typeThree', link: 'reports/succeed/typeThree/' + reportId }]
+  const xs = tabs.map(tab => {
+    if (tab.subtype === subtype) {
+      return _.extend({}, tab, { className: 'selected' })
+    } else return tab
+  })
+  return xs
+}
+
+function distributeSucceed (xs, { spamThreshold, trendAngle, usTraffic }) {
+  const summary = xs
+  const typeOne = xs.filter(x => x.us_tr >= usTraffic && !x.writeToUs && x.spamFound <= spamThreshold && x.angle >= trendAngle)
+  const typeTwo = xs.filter(x => x.us_tr >= usTraffic && x.writeToUs)
+  const typeThree = xs.filter(x => x.us_tr < usTraffic || x.angle < trendAngle || x.spamFound > spamThreshold)
+  return { summary, typeOne, typeTwo, typeThree }
+}
+
 async function addToBlackList (h) {
   const { reportId, type } = h
   const domains = _.keys(_.omit(h, 'reportId', 'type'))
@@ -22,7 +44,7 @@ async function addToBlackList (h) {
   const rest = _.omit(report.right[type], domains)
   const toMove = _.pick(report.right[type], domains)
   report.right[type] = rest
-  report.right.blacklisted = toMove
+  report.right.blacklisted = { ...toMove, ...report.right.blacklisted }
   await fs.writeFile(reportFilename, JSON.stringify(report))
 }
 
@@ -107,3 +129,5 @@ exports.getClientFromTask = getClientFromTask
 exports.updateTask = updateTask
 exports.getQuotasRemaining = getQuotasRemaining
 exports.addToBlackList = addToBlackList
+exports.distributeSucceed = distributeSucceed
+exports.genSuccessTabs = genSuccessTabs

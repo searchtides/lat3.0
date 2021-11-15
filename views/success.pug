@@ -11,14 +11,17 @@ html
   p
     a(href='/reports') Go to reports
   h1 Client: #{clientName}
+  span Records: #{records}
   p
-    a(class='selected' href='/summary') Summary
+    each x in tabs
+      a(class=x.className href='/' + x.link) #{x.name}
   form(action='/add_to_blacklist', method='POST' enctype="multipart/form-data")
     input(class='hidden' name='reportId' value=reportId)
     input(class='hidden' name='type' value='succeed')
+    input(class='hidden' name='subtype' value=subtype)
     if records > 0
       div
-        a(class='download' href='/download?filename=summary') Download
+        a(class='download' href='/download?type=succeed&subtype=summary&reportId=' + reportId ) Download
         input(class='blacklist' type='submit', value='Add to black list')
       table
         tr

@@ -1,6 +1,6 @@
 require('dotenv').config()
 const appService = require('./services/appService')
-const { rearrangeResults, translateSucceedToVh, keys } = require('./modules/utils')
+const { rearrangeResults, translateSucceedToVh, keys, prettyView } = require('./modules/utils')
 const path = require('path')
 const fs = require('fs')
 const fsa = require('fs').promises
@@ -83,7 +83,7 @@ app.get('/reports', (req, res) => {
         blacklisted,
         blacklistedUrl: '/reports/blacklisted/' + x.timestamp,
         succeed,
-        succeedUrl: '/reports/succeed/' + x.timestamp,
+        succeedUrl: '/reports/succeed/summary/' + x.timestamp,
         rejected,
         rejectedUrl: '/reports/rejected/' + x.timestamp,
         failed,
@@ -97,19 +97,21 @@ app.get('/reports', (req, res) => {
   })
 })
 
-app.get('/reports/succeed/:reportId', (req, res) => {
-  const { reportId } = req.params
+app.get('/reports/succeed/:subtype/:reportId', (req, res) => {
+  const { subtype, reportId } = req.params
   const filename = validFs(reportId) + '.json'
   const fullname = path.join(__dirname, 'results', filename)
   const txt = fs.readFileSync(fullname, 'utf8')
   const h = JSON.parse(txt)
   const clientName = h.right.clientName
-  const vh = translateSucceedToVh(h.right.succeed).map(h => {
-    h.angle = h.angle.toFixed(1)
-    h.coef = h.coef.toFixed(2)
-    return h
-  })
-  res.render('success', { records: vh.length, success: vh, clientName, reportId })
+  const fn = _.compose(prettyView, translateSucceedToVh)
+  const vh = fn(h.right.succeed)
+  const distr = appService.distributeSucceed(vh, { spamThreshold: 0, trendAngle: -5, usTraffic: 80 })
+  const xs = distr[subtype]
+  if (xs) {
+    const tabs = appService.genSuccessTabs(subtype, reportId)
+    res.render('success', { records: xs.length, success: xs, clientName, reportId, tabs, subtype })
+  } else res.send('page not found')
 })
 
 app.get('/reports/rejected/:reportId', (req, res) => {
@@ -158,50 +160,41 @@ app.get('/reports/blacklisted/:reportId', (req, res) => {
   res.render('blacklisted', { records: xs.length, xs, clientName, reportId })
 })
 
-app.get('/result_failed', (req, res) => {
-  const xs = JSON.parse(fs.readFileSync('db/failed.json', 'utf8'))
-  const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
-  res.render('failed', { xs, clientName: task.clientName, records: xs.length })
-})
-
-app.get('/result_type_one', (req, res) => {
-  const xs = JSON.parse(fs.readFileSync('db/typeOne.json', 'utf8'))
-  const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
-  res.render('type_one', { xs, clientName: task.clientName, records: xs.length })
-})
-
-app.get('/result_type_two', (req, res) => {
-  const xs = JSON.parse(fs.readFileSync('db/typeTwo.json', 'utf8'))
-  const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
-  res.render('type_two', { xs, clientName: task.clientName, records: xs.length })
-})
-
-app.get('/result_type_three', (req, res) => {
-  const xs = JSON.parse(fs.readFileSync('db/typeThree.json', 'utf8'))
-  const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
-  res.render('type_three', { xs, clientName: task.clientName, records: xs.length })
-})
-
 app.get('/download', (req, res) => {
-  const root = req.query.filename
-  const filename = path.join('db', root)
-  const result = JSON.parse(fs.readFileSync(filename + '.json', 'utf8'))
-  if (result.length === 0) res.end()
-  const headers = Object.keys(result[0])
-  let m = result.map(x => {
-    return headers.map(header => x[header]).join(',')
-  })
-  m = [headers.join(',')].concat(m)
-  /* eslint-disable */
-  fs.writeFileSync(filename + '.csv', m.join("\n"))
-  /* eslint-enable */
-  res.download(filename + '.csv', root + '.csv')
+  const { type, subtype, reportId } = req.query
+  const filename = validFs(reportId)
+  const fullname = path.join(__dirname, 'results', filename + '.json')
+  const result = JSON.parse(fs.readFileSync(fullname, 'utf8'))
+  const h = result.right[type]
+  switch (type) {
+    case 'succeed':
+      switch (subtype) {
+        case 'summary': {
+          const xs = translateSucceedToVh(h)
+          if (xs.length) {
+            const headers = keys(xs[0])
+            let m = xs.map(x => {
+              return headers.map(header => x[header]).join(',')
+            })
+            m = [headers.join(',')].concat(m)
+            fs.writeFileSync(filename + '.csv', m.join('\n'))
+            res.download(filename + '.csv', filename + '.csv')
+          } else res.end()
+          break
+        }
+      }
+      break
+    case 'rejected':
+      break
+    case 'failed':
+      break
+  }
 })
 
 app.post('/add_to_blacklist', async (req, res) => {
-  const { reportId, type } = req.body
+  const { reportId, type, subtype } = req.body
   await appService.addToBlackList(req.body)
-  res.redirect('/reports/' + type + '/' + reportId)
+  res.redirect('/reports/' + type + '/' + subtype + '/' + reportId)
 })
 
 app.get('/results', (req, res) => {
