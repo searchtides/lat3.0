@@ -198,50 +198,6 @@ app.post('/add_to_blacklist', async (req, res) => {
   res.redirect('/reports/' + type + '/' + subtype + '/' + reportId)
 })
 
-app.get('/results', (req, res) => {
-  t2 = new Date().getTime()
-  const elapsed = ((t2 - t1) / 1000).toFixed(0)
-  const result = JSON.parse(fs.readFileSync('db/result.json', 'utf8'))
-  const { spamThreshold, trendAngle } = JSON.parse(fs.readFileSync('db/settings.json', 'utf8'))
-  // converting non fatal errors to human readable form
-  result.success.forEach(x => {
-    x.kwds = _.keys(x.keywords).map(kwd => kwd + ':' + (x.keywords[kwd].right ? x.keywords[kwd].right : 'error')).join(', ')
-    x.spam = x.maybeSpam.left ? 'error' : x.maybeSpam.right
-  })
-  result.elapsed = elapsed
-  fs.writeFileSync('db/hr_result.json', JSON.stringify(result))// saving results in human readable form
-  const success = result.success
-  fs.writeFileSync('db/summary.json', JSON.stringify(success))
-  const typeOne = success.filter(x => x.us_tr >= 80 && !x.writeToUs && x.spam <= spamThreshold && x.angle >= trendAngle)
-  fs.writeFileSync('db/typeOne.json', JSON.stringify(typeOne))
-  const typeTwo = success.filter(x => x.us_tr >= 80 && x.writeToUs)
-  fs.writeFileSync('db/typeTwo.json', JSON.stringify(typeTwo))
-  const typeThree = success.filter(x => x.us_tr < 80 || x.angle < trendAngle || x.spam === 'error' || x.spam > spamThreshold)
-  fs.writeFileSync('db/typeThree.json', JSON.stringify(typeThree))
-  const failed = result.fails.map(x => x.left)
-  const failedFilename = 'db/failed'
-  fs.writeFileSync(failedFilename + '.json', JSON.stringify(failed))
-  if (failed.length) {
-    const dateSuffix = new Date().toISOString().split('.')[0]
-    fs.writeFileSync(failedFilename + dateSuffix + '.json', JSON.stringify(failed))
-    if (process.env.DEV_MODE === 'on') {
-      send(failedFilename + dateSuffix)
-        .then(x => x)
-        .catch(e => e)
-    }
-  }
-  res.redirect('/summary')
-})
-
-app.get('/summary', (req, res) => {
-  const result = JSON.parse(fs.readFileSync('db/hr_result.json', 'utf8'))
-  const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
-  const journal = result.journal
-  const success = result.success
-  const elapsed = result.elapsed
-  res.render('results', { records: success.length, success, ...task, journal, elapsed })
-})
-
 app.get('/process', (req, res) => {
   res.sendFile(path.join(__dirname, 'views/progress.html'))
 })
