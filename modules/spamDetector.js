@@ -19,6 +19,7 @@ async function main ({ right, left }, spamKeywords, logger) {
   }
   const { succeed, rejected, failed } = right
   const domains = _.keys(succeed)
+  const blacklisted = right.blacklisted
   logger({ type: 'phase', data: 'spamDetector' })
   logger({ type: 'attempt', data: 1 })
   logger({ type: 'blockSize', data: domains.length })
@@ -32,7 +33,7 @@ async function main ({ right, left }, spamKeywords, logger) {
   const fail = res.map(x => x.left).filter(x => x)
   const failMap = makeMap(fail)
   const failedNext = _.extend({}, failed, failMap)
-  return { right: { succeed: succeedMap, rejected, failed: failedNext } }
+  return { right: { succeed: succeedMap, rejected, failed: failedNext, blacklisted } }
 }
 
 module.exports = main

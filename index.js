@@ -30,10 +30,8 @@ wss.on('connection', (ws) => {
   const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
   const clientId = task.clientId
   const clientName = task.clientName
-  const domains = task.whiteList
-  const clientSettings = _.pick(task, 'drSettings', 'spam', 'keywords')
   const logger = (x) => ws.send(JSON.stringify(x))
-  qualifier({ clientId, clientSettings, domains, logger })
+  qualifier(task, logger)
     .then((res) => {
       const h = rearrangeResults(res)
       ws.send(js({ type: 'finish', data: res }))

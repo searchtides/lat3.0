@@ -12,6 +12,7 @@ async function main ({ right, left }, drSettings, logger) {
   let failedLocal
   let counter = 1
   let domains = _.keys(right.succeed)
+  const blacklisted = right.blacklisted
   const loop = async value => {
     do {
       logger({ type: 'attempt', data: counter })
@@ -45,7 +46,7 @@ async function main ({ right, left }, drSettings, logger) {
     notPassedMap[domain] = _.extend({}, succeed[domain], notPassedMap[domain])
   })
   const rejectedMap = _.extend({}, rejected, notPassedMap)
-  const res = { succeed: succeedMap, rejected: rejectedMap, failed: failedMap }
+  const res = { succeed: succeedMap, rejected: rejectedMap, failed: failedMap, blacklisted }
   return Promise.resolve({ right: res })
 }
 

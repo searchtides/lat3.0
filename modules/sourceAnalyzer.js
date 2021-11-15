@@ -16,11 +16,12 @@ const corpse = JSON.parse(fs.readFileSync(filename, {
 const english = langDetector(corpse, from, to)
 const firstStep = html => { return { english: english(html), writeForUs: externalAuthor(html) } }
 
-async function main (xs, threshold = 50, logger) {
+async function main ({ right, left }, threshold = 50, logger) {
   let counter = 1
   let succeedTotal = []
   let failedLocal
-  let domains = xs
+  let domains = _.keys(right.succeed)
+  const blacklisted = right.blacklisted
   const loop = async value => {
     do {
       logger({ type: 'attempt', data: counter })
@@ -48,6 +49,6 @@ async function main (xs, threshold = 50, logger) {
   const succeed = makeMap(valid)
   const rejected = makeMap(invalid)
   const failed = makeMap(failedLocal.map(x => x.left))
-  return Promise.resolve({ right: { succeed, rejected, failed } })
+  return Promise.resolve({ right: { succeed, rejected, failed, blacklisted } })
 }
 module.exports = main

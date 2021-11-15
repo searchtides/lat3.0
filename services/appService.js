@@ -44,11 +44,8 @@ async function updateTask (clientId, sampleFile) {
     const idx = headers.indexOf('url')
     if (idx > -1) {
       const regexp = /http|\//
-      const urls = _.unique(xs.map(x => regexp.test(x[idx]) ? extractDomain(x[idx]) : x[idx]))
-      const blackList = clientsMap[clientId].blackList
-      const blackMap = _.object(blackList, blackList)
-      const whiteList = urls.filter(url => blackMap[url] === undefined)
-      const task = { ...{ clientId }, ...clientsMap[clientId], ...{ whiteList } }
+      const domains = _.unique(xs.map(x => regexp.test(x[idx]) ? extractDomain(x[idx]) : x[idx]))
+      const task = { ...{ clientId }, ...clientsMap[clientId], ...{ domains } }
       await fs.writeFile('db/task.json', JSON.stringify(task))
       return { err: null }
     }
