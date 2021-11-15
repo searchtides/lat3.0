@@ -110,7 +110,8 @@ app.get('/reports/succeed/:subtype/:reportId', (req, res) => {
   const xs = distr[subtype]
   if (xs) {
     const tabs = appService.genSuccessTabs(subtype, reportId)
-    res.render('success', { records: xs.length, success: xs, clientName, reportId, tabs, subtype })
+    res.render('success',
+      { records: xs.length, success: xs, clientName, reportId, tabs, subtype, type: 'succeed' })
   } else res.send('page not found')
 })
 
@@ -167,23 +168,23 @@ app.get('/download', (req, res) => {
   const result = JSON.parse(fs.readFileSync(fullname, 'utf8'))
   const h = result.right[type]
   switch (type) {
-    case 'succeed':
-      switch (subtype) {
-        case 'summary': {
-          const xs = translateSucceedToVh(h)
-          if (xs.length) {
-            const headers = keys(xs[0])
-            let m = xs.map(x => {
-              return headers.map(header => x[header]).join(',')
-            })
-            m = [headers.join(',')].concat(m)
-            fs.writeFileSync(filename + '.csv', m.join('\n'))
-            res.download(filename + '.csv', filename + '.csv')
-          } else res.end()
-          break
-        }
-      }
+    case 'succeed': {
+      const vh = translateSucceedToVh(h)
+      const distr = appService.distributeSucceed(vh, { spamThreshold: 0, trendAngle: -5, usTraffic: 80 })
+      const xs = distr[subtype]
+      if (xs.length) {
+        const headers = keys(xs[0])
+        let m = xs.map(x => {
+          return headers.map(header => x[header]).join(',')
+        })
+        m = [headers.join(',')].concat(m)
+        const destFilename = [type, subtype, filename].join('-') + '.csv'
+        const fullDestName = path.join(__dirname, 'operational', destFilename)
+        fs.writeFileSync(fullDestName, m.join('\n'))
+        res.download(fullDestName, destFilename)
+      } else res.end()
       break
+    }
     case 'rejected':
       break
     case 'failed':
