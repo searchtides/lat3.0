@@ -28,12 +28,13 @@ wss.on('connection', (ws) => {
   })
   t1 = new Date().getTime()
   const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
+  const { trendAngle } = JSON.parse(fs.readFileSync('db/settings.json', 'utf8'))
   const clientId = task.clientId
   const clientName = task.clientName
   const logger = (x) => ws.send(JSON.stringify(x))
   qualifier(task, logger)
     .then((res) => {
-      const h = rearrangeResults(res)
+      const h = rearrangeResults(res, trendAngle)
       ws.send(js({ type: 'finish', data: res }))
       const t = new Date()
       const t2 = t.getTime()
