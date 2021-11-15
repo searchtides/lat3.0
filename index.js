@@ -76,8 +76,11 @@ app.get('/reports', (req, res) => {
       const succeed = keysN(x.succeed)
       const rejected = keysN(x.rejected)
       const failed = keysN(x.failed)
+      const blacklisted = x.blacklisted ? keysN(x.blacklisted) : 0
       return {
         timestamp: x.timestamp,
+        blacklisted,
+        blacklistedUrl: '/reports/blacklisted/' + x.timestamp,
         succeed,
         succeedUrl: '/reports/succeed/' + x.timestamp,
         rejected,
@@ -85,7 +88,7 @@ app.get('/reports', (req, res) => {
         failed,
         failedUrl: '/reports/failed/' + x.timestamp,
         elapsedTime: x.elapsedTime,
-        total: succeed + rejected + failed,
+        total: succeed + rejected + failed + blacklisted,
         clientName: x.clientName
       }
     })
@@ -135,6 +138,23 @@ app.get('/reports/failed/:reportId', (req, res) => {
     return _.extend(fail, { domain })
   })
   res.render('failed', { records: xs.length, xs, clientName, reportId })
+})
+
+app.get('/reports/blacklisted/:reportId', (req, res) => {
+  const { reportId } = req.params
+  const filename = validFs(reportId) + '.json'
+  const fullname = path.join(__dirname, 'results', filename)
+  const txt = fs.readFileSync(fullname, 'utf8')
+  const h = JSON.parse(txt)
+  const clientName = h.right.clientName
+  let xs
+  if (h.right.blacklisted) {
+    xs = keys(h.right.blacklisted).map(domain => {
+      const blacklist = h.right.blacklisted[domain]
+      return _.extend({}, blacklist, { domain })
+    })
+  } else { xs = [] }
+  res.render('blacklisted', { records: xs.length, xs, clientName, reportId })
 })
 
 app.get('/result_failed', (req, res) => {

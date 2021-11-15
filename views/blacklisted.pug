@@ -1,0 +1,41 @@
+html
+  head
+    style
+      include ./style.css
+    style.
+      body {
+        background-color: #F8F8F8;
+      }
+    title= "Failed"
+  a(href='/') Go to start
+  p
+    a(href='/reports') Go to reports
+  h1 Client: #{clientName}
+  p
+    a(class='selected' href='/summary') Summary
+  form(action='/add_to_blacklist', method='POST' enctype="multipart/form-data")
+    input(class='hidden' name='reportId' value=reportId)
+    input(class='hidden' name='type' value='failed')
+    if records > 0
+      div
+        a(class='download' href='/download?filename=summary') Download
+      table
+        tr
+          th Url
+          th English
+          th DR
+          th TR
+          th US Traffic
+          th Write for us
+          th Trend angle
+        each x in xs
+          tr
+            td  #{x.domain}
+            td  #{x.english}
+            td  #{x.dr}
+            td  #{x.tr}
+            td  #{x.us_tr}
+            td  #{x.writeToUs}
+            td  #{x.angle}
+    else
+      div No records

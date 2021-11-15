@@ -13,6 +13,7 @@ html
       th Succeed
       th Rejected
       th Failed
+      th Blacklisted
       th Elapsed Time
     each x in xs
       tr
@@ -25,4 +26,6 @@ html
           a(href=`${x.rejectedUrl}`) #{x.rejected}
         td
           a(href=`${x.failedUrl}`) #{x.failed}
+        td
+          a(href=`${x.blacklistedUrl}`) #{x.blacklisted}
         td #{x.elapsedTime}
