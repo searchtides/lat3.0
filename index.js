@@ -1,7 +1,7 @@
 require('dotenv').config()
 const appService = require('./services/appService')
 const { keys } = require('./modules/utils')
-const { rearrangeResults, translateSucceedToVh, prettyView } = appService
+const { rearrangeResults, translateRejectedToVh, translateSucceedToVh, prettyView } = appService
 const path = require('path')
 const fs = require('fs')
 const fsa = require('fs').promises
@@ -124,11 +124,7 @@ app.get('/reports/rejected/:subtype/:reportId', (req, res) => {
   const txt = fs.readFileSync(fullname, 'utf8')
   const h = JSON.parse(txt)
   const clientName = h.right.clientName
-  const vh = keys(h.right.rejected).map(domain => {
-    const rej = h.right.rejected[domain]
-    const english = (rej.english).toFixed(1)
-    return _.extend(h.right.rejected[domain], { domain, english })
-  })
+  const vh = translateRejectedToVh(h.right.rejected)
   const distr = appService.distributeRejected(vh, { englishConfidence: 50 })
   const xs = distr[subtype]
   if (xs) {
@@ -176,29 +172,32 @@ app.get('/download', (req, res) => {
   const result = JSON.parse(fs.readFileSync(fullname, 'utf8'))
   const h = result.right[type]
   const generalSettings = JSON.parse(fs.readFileSync('db/settings.json'))
+  let distr, vh
   switch (type) {
     case 'succeed': {
-      const vh = translateSucceedToVh(h)
-      const distr = appService.distributeSucceed(vh, generalSettings)
-      const xs = distr[subtype]
-      if (xs.length) {
-        const headers = keys(xs[0])
-        let m = xs.map(x => {
-          return headers.map(header => x[header]).join(',')
-        })
-        m = [headers.join(',')].concat(m)
-        const destFilename = [type, subtype, filename].join('-') + '.csv'
-        const fullDestName = path.join(__dirname, 'operational', destFilename)
-        fs.writeFileSync(fullDestName, m.join('\n'))
-        res.download(fullDestName, destFilename)
-      } else res.end()
+      vh = translateSucceedToVh(h)
+      distr = appService.distributeSucceed(vh, generalSettings)
       break
     }
     case 'rejected':
+      vh = translateRejectedToVh(h)
+      distr = appService.distributeRejected(vh)
       break
     case 'failed':
       break
   }
+  const xs = distr[subtype]
+  if (xs.length) {
+    const headers = keys(xs[0])
+    let m = xs.map(x => {
+      return headers.map(header => x[header]).join(',')
+    })
+    m = [headers.join(',')].concat(m)
+    const destFilename = [type, subtype, filename].join('-') + '.csv'
+    const fullDestName = path.join(__dirname, 'operational', destFilename)
+    fs.writeFileSync(fullDestName, m.join('\n'))
+    res.download(fullDestName, destFilename)
+  } else res.end()
 })
 
 app.post('/add_to_blacklist', async (req, res) => {

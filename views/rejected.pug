@@ -21,7 +21,7 @@ html
     input(class='hidden' name='subtype' value=subtype)
     if records > 0
       div
-        a(class='download' href='/download?filename=summary') Download
+        a(class='download' href='/download?type=' + type + '&subtype=' + subtype + '&reportId=' + reportId ) Download
         input(class='blacklist' type='submit', value='Add to black list')
       table
         tr

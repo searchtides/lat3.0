@@ -17,6 +17,16 @@ const prettyView = xs => {
   })
 }
 
+// ::RejectMap->[RejectReportRow]
+const translateRejectedToVh = h => {
+  return _.keys(h).map(domain => {
+    const rej = h[domain]
+    const english = (rej.english).toFixed(1)
+    const row = _.extend(h[domain], { domain, english })
+    return row
+  })
+}
+
 // ::SuccessMap->[SuccessReportRow]
 const translateSucceedToVh = h => {
   return _.keys(h).map(domain => {
@@ -210,3 +220,4 @@ exports.genRejectedTabs = genRejectedTabs
 exports.prettyView = prettyView
 exports.translateSucceedToVh = translateSucceedToVh
 exports.rearrangeResults = rearrangeResults
+exports.translateRejectedToVh = translateRejectedToVh
