@@ -18,7 +18,7 @@ const validFs = x => x.replace(/:|T/g, '-')
 
 const wss = new WebSocketServer({ port: 8080 })
 
-let t1, t2
+let t1
 const js = (x) => JSON.stringify(x)
 
 wss.on('connection', (ws) => {
@@ -98,6 +98,7 @@ app.get('/reports', (req, res) => {
 })
 
 app.get('/reports/succeed/:subtype/:reportId', (req, res) => {
+  const generalSettings = JSON.parse(fs.readFileSync('db/settings.json'))
   const { subtype, reportId } = req.params
   const filename = validFs(reportId) + '.json'
   const fullname = path.join(__dirname, 'results', filename)
@@ -106,7 +107,7 @@ app.get('/reports/succeed/:subtype/:reportId', (req, res) => {
   const clientName = h.right.clientName
   const fn = _.compose(prettyView, translateSucceedToVh)
   const vh = fn(h.right.succeed)
-  const distr = appService.distributeSucceed(vh, { spamThreshold: 0, trendAngle: -5, usTraffic: 80 })
+  const distr = appService.distributeSucceed(vh, generalSettings)
   const xs = distr[subtype]
   if (xs) {
     const tabs = appService.genSuccessTabs(subtype, reportId)
@@ -167,10 +168,11 @@ app.get('/download', (req, res) => {
   const fullname = path.join(__dirname, 'results', filename + '.json')
   const result = JSON.parse(fs.readFileSync(fullname, 'utf8'))
   const h = result.right[type]
+  const generalSettings = JSON.parse(fs.readFileSync('db/settings.json'))
   switch (type) {
     case 'succeed': {
       const vh = translateSucceedToVh(h)
-      const distr = appService.distributeSucceed(vh, { spamThreshold: 0, trendAngle: -5, usTraffic: 80 })
+      const distr = appService.distributeSucceed(vh, generalSettings)
       const xs = distr[subtype]
       if (xs.length) {
         const headers = keys(xs[0])
@@ -224,7 +226,7 @@ app.get('/get_settings', (req, res) => {
       return Promise.resolve(h)
     })
     .catch(e => {
-      h = { spamThreshold: 0, trendAngle: 5 }
+      h = { spamThreshold: 0, trendAngle: 5, usTraffic: 80 }
       fs.writeFileSync('db/settings.json', JSON.stringify(h))
       return Promise.resolve(h)
     })
