@@ -123,12 +123,18 @@ app.get('/reports/rejected/:subtype/:reportId', (req, res) => {
   const txt = fs.readFileSync(fullname, 'utf8')
   const h = JSON.parse(txt)
   const clientName = h.right.clientName
-  const xs = keys(h.right.rejected).map(domain => {
+  const vh = keys(h.right.rejected).map(domain => {
     const rej = h.right.rejected[domain]
     const english = (rej.english).toFixed(1)
     return _.extend(h.right.rejected[domain], { domain, english })
   })
-  res.render('rejected', { records: xs.length, xs, clientName, reportId, subtype })
+  const distr = appService.distributeRejected(vh, { englishConfidence: 50 })
+  const xs = distr[subtype]
+  if (xs) {
+    const tabs = appService.genRejectedTabs(subtype, reportId)
+    res.render('rejected',
+      { records: xs.length, xs, clientName, reportId, tabs, subtype, type: 'rejected' })
+  } else res.send('page not found')
 })
 
 app.get('/reports/failed/:reportId', (req, res) => {

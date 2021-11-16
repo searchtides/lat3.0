@@ -3,8 +3,9 @@ const keys = x => Object.keys(x)
 
 const prettyView = xs => {
   return xs.map(h => {
-    h.angle = h.angle.toFixed(1)
-    h.coef = h.coef.toFixed(2)
+    if (h.angle) h.angle = h.angle.toFixed(1)
+    if (h.coef) h.coef = h.coef.toFixed(2)
+    if (h.english) h.english = h.english.toFixed(0)
     return h
   })
 }

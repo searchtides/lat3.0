@@ -22,6 +22,28 @@ function genSuccessTabs (subtype, reportId) {
   return xs
 }
 
+function genRejectedTabs (subtype, reportId) {
+  const tabs = [
+    { name: 'Summary', subtype: 'summary', link: 'reports/rejected/summary/' + reportId },
+    { name: 'Not English', subtype: 'nonEnglish', link: 'reports/rejected/nonEnglish/' + reportId },
+    { name: 'Low metrics', subtype: 'lowMetrics', link: 'reports/rejected/lowMetrics/' + reportId }
+  ]
+  const xs = tabs.map(tab => {
+    if (tab.subtype === subtype) {
+      return _.extend({}, tab, { className: 'selected' })
+    } else return tab
+  })
+  return xs
+}
+
+function distributeRejected (xs) {
+  const summary = xs
+  const hasMetrics = x => x.dr !== undefined
+  const nonEnglish = _.reject(xs, hasMetrics)
+  const lowMetrics = _.filter(xs, hasMetrics)
+  return { summary, nonEnglish, lowMetrics }
+}
+
 function distributeSucceed (xs, { spamThreshold, trendAngle, usTraffic }) {
   const summary = xs
   const typeOne = xs.filter(x => x.us_tr >= usTraffic && !x.writeToUs && x.spamFound <= spamThreshold && x.angle >= trendAngle)
@@ -131,3 +153,5 @@ exports.getQuotasRemaining = getQuotasRemaining
 exports.addToBlackList = addToBlackList
 exports.distributeSucceed = distributeSucceed
 exports.genSuccessTabs = genSuccessTabs
+exports.distributeRejected = distributeRejected
+exports.genRejectedTabs = genRejectedTabs
