@@ -3,6 +3,7 @@ const { metricsPass, processInBatches } = require('./ahref')
 const { makeMap } = require('./utils')
 const BATCH_SIZE = 20
 const ATTEMPTS = 5
+const PHASE = 'metricsAnalyzer'
 
 async function main ({ right, left }, drSettings, logger) {
   if (left) { // forwarding error
@@ -29,11 +30,11 @@ async function main ({ right, left }, drSettings, logger) {
       counter++
     } while (counter <= ATTEMPTS && domains.length > 0)
   }
-  logger({ type: 'phase', data: 'metricsAnalyzer' })
+  logger({ type: 'phase', data: PHASE })
   await loop()
   const { succeed, rejected, failed } = right
   const metricsPassed = metricsPass(drSettings)
-  const fMap = makeMap(failedLocal.map(x => x.left))
+  const fMap = makeMap(failedLocal.map(x => _.extend({}, x.left, { phase: PHASE })))
   const failedMap = _.extend({}, failed, fMap)
   const passed = _.filter(succeedTotal, metricsPassed)
   const notPassed = _.reject(succeedTotal, metricsPassed)

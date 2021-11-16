@@ -1,6 +1,7 @@
 const { countKeywords } = require('./serp')
 const _ = require('lodash')
 const { serial, makeMap } = require('./utils')
+const PHASE = 'keywordsCounter'
 
 const keywordsCount = (domain, keywords) => {
   return countKeywords(domain, keywords)
@@ -9,7 +10,7 @@ const keywordsCount = (domain, keywords) => {
     })
     .catch((error) => {
       const e = JSON.stringify(error, Object.getOwnPropertyNames(error))
-      return Promise.resolve({ left: { message: 'error during keywords counting', url: domain, e } })
+      return Promise.resolve({ left: { phase: PHASE, url: domain, e } })
     })
 }
 
@@ -21,7 +22,7 @@ async function main ({ right, left }, keywords, logger) {
   const { succeed, rejected, failed } = right
   const domains = _.keys(succeed)
   const blacklisted = right.blacklisted
-  logger({ type: 'phase', data: 'keywordsCounter' })
+  logger({ type: 'phase', data: PHASE })
   logger({ type: 'attempt', data: 1 })
   logger({ type: 'blockSize', data: domains.length })
   const funcs = domains.map(domain => () => keywordsCount(domain, keywords))
@@ -31,7 +32,7 @@ async function main ({ right, left }, keywords, logger) {
   _.keys(succeedMap).forEach(domain => {
     succeedMap[domain] = _.extend({}, succeedMap[domain], succeed[domain])
   })
-  const fail = res.map(x => x.left).filter(x => x)
+  const fail = res.filter(x => x.left).map(x => _.extend({}, x.left, { phase: PHASE }))
   const failMap = makeMap(fail)
   const failedNext = _.extend({}, failed, failMap)
   return { right: { succeed: succeedMap, rejected, failed: failedNext, blacklisted } }

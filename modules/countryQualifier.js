@@ -2,6 +2,7 @@ const _ = require('lodash')
 const { exec } = require('child_process')
 const axios = require('axios')
 const { serial, makeMap } = require('./utils')
+const PHASE = 'countryQualifier'
 
 const getIp = (domain) => {
   return new Promise((resolve, reject) => {
@@ -34,7 +35,7 @@ const getCountry = (domain) => {
     })
     .catch((error) => {
       const e = JSON.stringify(error, Object.getOwnPropertyNames(error))
-      return Promise.resolve({ left: { message: 'error during country detection', url: domain, error: e } })
+      return Promise.resolve({ left: { phase: PHASE, url: domain, error: e } })
     })
 }
 
@@ -45,7 +46,7 @@ async function main ({ right, left }, logger) {
   const { succeed, rejected, failed } = right
   const domains = _.keys(succeed)
   const blacklisted = right.blacklisted
-  logger({ type: 'phase', data: 'countryQualifier' })
+  logger({ type: 'phase', data: PHASE })
   logger({ type: 'attempt', data: 1 })
   logger({ type: 'blockSize', data: domains.length })
   const funcs = domains.map(x => () => getCountry(x))
@@ -56,7 +57,7 @@ async function main ({ right, left }, logger) {
     succeedMap[domain] = _.extend({}, succeedMap[domain], succeed[domain])
   })
 
-  const fail = res.map(x => x.left).filter(x => x)
+  const fail = res.filter(x => x.left).map(x => _.extend({}, x.left, { phase: PHASE }))
   const failMap = makeMap(fail)
   const failedNext = _.extend({}, failed, failMap)
   return { right: { succeed: succeedMap, rejected, failed: failedNext, blacklisted } }

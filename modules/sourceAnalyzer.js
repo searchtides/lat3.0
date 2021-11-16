@@ -1,5 +1,6 @@
 const ATTEMPTS = 5
 const BATCH_SIZE = 50
+const PHASE = 'sourceAnalyzer'
 const _ = require('lodash')
 const download = require('./download')
 const path = require('path')
@@ -41,14 +42,14 @@ async function main ({ right, left }, threshold = 50, logger) {
       counter++
     } while (counter <= ATTEMPTS && domains.length > 0)
   }
-  logger({ type: 'phase', data: 'sourceAnalyzer' })
+  logger({ type: 'phase', data: PHASE })
   await loop()
   const p = x => x.english > threshold
   const valid = _.filter(succeedTotal, p)
   const invalid = _.reject(succeedTotal, p)
   const succeed = makeMap(valid)
   const rejected = makeMap(invalid)
-  const failed = makeMap(failedLocal.map(x => x.left))
+  const failed = makeMap(failedLocal.map(x => _.extend({}, x, { phase: PHASE })))
   return Promise.resolve({ right: { succeed, rejected, failed, blacklisted } })
 }
 module.exports = main

@@ -1,6 +1,7 @@
 const { totalResults } = require('./serp')
 const _ = require('lodash')
 const { serial, makeMap } = require('./utils')
+const PHASE = 'spamDetector'
 
 const detectSpam = (domain, spam) => {
   return totalResults(domain, spam)
@@ -9,7 +10,7 @@ const detectSpam = (domain, spam) => {
     })
     .catch((error) => {
       const e = JSON.stringify(error, Object.getOwnPropertyNames(error))
-      return Promise.resolve({ left: { url: domain, error: e, message: 'error during spam detection' } })
+      return Promise.resolve({ left: { url: domain, error: e, phase: PHASE } })
     })
 }
 
@@ -20,7 +21,7 @@ async function main ({ right, left }, spamKeywords, logger) {
   const { succeed, rejected, failed } = right
   const domains = _.keys(succeed)
   const blacklisted = right.blacklisted
-  logger({ type: 'phase', data: 'spamDetector' })
+  logger({ type: 'phase', data: PHASE })
   logger({ type: 'attempt', data: 1 })
   logger({ type: 'blockSize', data: domains.length })
   const funcs = domains.map(domain => () => detectSpam(domain, spamKeywords))
@@ -30,7 +31,7 @@ async function main ({ right, left }, spamKeywords, logger) {
   _.keys(succeedMap).forEach(domain => {
     succeedMap[domain] = _.extend({}, succeedMap[domain], succeed[domain])
   })
-  const fail = res.map(x => x.left).filter(x => x)
+  const fail = res.filter(x => x.left).map(x => _.extend({}, x.left, { phase: PHASE }))
   const failMap = makeMap(fail)
   const failedNext = _.extend({}, failed, failMap)
   return { right: { succeed: succeedMap, rejected, failed: failedNext, blacklisted } }
