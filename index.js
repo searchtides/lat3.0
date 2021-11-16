@@ -1,6 +1,7 @@
 require('dotenv').config()
 const appService = require('./services/appService')
-const { rearrangeResults, translateSucceedToVh, keys, prettyView } = require('./modules/utils')
+const { keys } = require('./modules/utils')
+const { rearrangeResults, translateSucceedToVh, prettyView } = appService
 const path = require('path')
 const fs = require('fs')
 const fsa = require('fs').promises

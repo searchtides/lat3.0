@@ -8,6 +8,58 @@ const _ = require('underscore')
 const { v4: uuidv4 } = require('uuid')
 const clientsMapPath = path.join(__dirname, '../db/clients_map.json')
 
+const prettyView = xs => {
+  return xs.map(h => {
+    if (h.angle) h.angle = h.angle.toFixed(1)
+    if (h.coef) h.coef = h.coef.toFixed(2)
+    if (h.english) h.english = h.english.toFixed(0)
+    return h
+  })
+}
+
+// ::SuccessMap->[SuccessReportRow]
+const translateSucceedToVh = h => {
+  return _.keys(h).map(domain => {
+    const kwMap = h[domain].keywordsMap
+    const keywords = _.keys(kwMap).map(k => [k, kwMap[k].right].join(': ')).join('; ')
+    const row = _.extend({}, { domain, keywords }, _.omit(h[domain], 'keywordsMap'))
+    return row
+  })
+}
+
+const rearrangeResults = (h, angle) => {
+  const containLeft = kwMap => {
+    const xs = _.keys(kwMap).map(k => kwMap[k].left)
+    return _.some(xs, x => x)
+  }
+  const res = {}
+  if (h.right) {
+    const succeed = {}
+    const rejected = {}
+    const failed = {}
+    _.keys(h.right.succeed).forEach(domain => {
+      h.right.succeed[domain].angle = (Math.atan(h.right.succeed[domain].coef) * 180) / Math.PI
+      const left = containLeft(h.right.succeed[domain].keywordsMap)
+      if (left) {
+        failed[domain] = h.right.succeed[domain]
+      } else {
+        if (h.right.succeed[domain].angle >= angle) {
+          succeed[domain] = h.right.succeed[domain]
+        } else {
+          rejected[domain] = h.right.succeed[domain]
+        }
+      }
+    })
+    res.right = _.extend({}, _.omit(h.right, 'succeed', 'failed'))
+    res.right.succeed = succeed
+    res.right.rejected = _.extend({}, h.right.rejected, rejected)
+    res.right.failed = _.extend({}, h.right.failed, failed)
+    return res
+  } else {
+    res.left = h.left
+  }
+}
+
 function genSuccessTabs (subtype, reportId) {
   const tabs = [
     { name: 'Summary', subtype: 'summary', link: 'reports/succeed/summary/' + reportId },
@@ -155,3 +207,6 @@ exports.distributeSucceed = distributeSucceed
 exports.genSuccessTabs = genSuccessTabs
 exports.distributeRejected = distributeRejected
 exports.genRejectedTabs = genRejectedTabs
+exports.prettyView = prettyView
+exports.translateSucceedToVh = translateSucceedToVh
+exports.rearrangeResults = rearrangeResults
