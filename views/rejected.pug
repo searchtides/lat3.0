@@ -16,6 +16,7 @@ html
   form(action='/add_to_blacklist', method='POST' enctype="multipart/form-data")
     input(class='hidden' name='reportId' value=reportId)
     input(class='hidden' name='type' value='rejected')
+    input(class='hidden' name='subtype' value=subtype)
     if records > 0
       div
         a(class='download' href='/download?filename=summary') Download
