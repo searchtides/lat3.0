@@ -16,30 +16,21 @@ html
   form(action='/add_to_blacklist', method='POST' enctype="multipart/form-data")
     input(class='hidden' name='reportId' value=reportId)
     input(class='hidden' name='type' value='failed')
+    input(class='hidden' name='subtype' value=subtype)
     if records > 0
       div
-        a(class='download' href='/download?filename=summary') Download
         input(class='blacklist' type='submit', value='Add to black list')
+        a(class='download' href='/download?type=' + type + '&subtype=' + subtype + '&reportId=' + reportId ) Download
       table
         tr
           th Blacklist
           th Url
-          th English
-          th DR
-          th TR
-          th US Traffic
-          th Write for us
-          th Trend angle
+          th Phase
         each x in xs
           tr
             td
               input(type='checkbox' id=x.domain name=x.domain)
             td  #{x.domain}
-            td  #{x.english}
-            td  #{x.dr}
-            td  #{x.tr}
-            td  #{x.us_tr}
-            td  #{x.writeToUs}
-            td  #{x.angle}
+            td  #{x.phase}
     else
       div No records

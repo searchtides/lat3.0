@@ -88,7 +88,7 @@ app.get('/reports', (req, res) => {
         rejected,
         rejectedUrl: '/reports/rejected/summary/' + x.timestamp,
         failed,
-        failedUrl: '/reports/failed/' + x.timestamp,
+        failedUrl: '/reports/failed/summary/' + x.timestamp,
         elapsedTime: x.elapsedTime,
         total: succeed + rejected + failed + blacklisted,
         clientName: x.clientName
@@ -134,8 +134,8 @@ app.get('/reports/rejected/:subtype/:reportId', (req, res) => {
   } else res.send('page not found')
 })
 
-app.get('/reports/failed/:reportId', (req, res) => {
-  const { reportId } = req.params
+app.get('/reports/failed/:subtype/:reportId', (req, res) => {
+  const { subtype, reportId } = req.params
   const filename = validFs(reportId) + '.json'
   const fullname = path.join(__dirname, 'results', filename)
   const txt = fs.readFileSync(fullname, 'utf8')
@@ -145,7 +145,7 @@ app.get('/reports/failed/:reportId', (req, res) => {
     const fail = h.right.failed[domain]
     return _.extend(fail, { domain })
   })
-  res.render('failed', { records: xs.length, xs, clientName, reportId })
+  res.render('failed', { records: xs.length, xs, clientName, reportId, subtype, type: 'failed' })
 })
 
 app.get('/reports/blacklisted/:reportId', (req, res) => {
