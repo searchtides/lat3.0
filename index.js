@@ -1,7 +1,7 @@
 require('dotenv').config()
 const appService = require('./services/appService')
 const { keys } = require('./modules/utils')
-const { rearrangeResults, translateRejectedToVh, translateSucceedToVh, prettyView } = appService
+const { rearrangeResults, translateFailedToVh, translateRejectedToVh, translateSucceedToVh, prettyView } = appService
 const path = require('path')
 const fs = require('fs')
 const fsa = require('fs').promises
@@ -124,7 +124,8 @@ app.get('/reports/rejected/:subtype/:reportId', (req, res) => {
   const txt = fs.readFileSync(fullname, 'utf8')
   const h = JSON.parse(txt)
   const clientName = h.right.clientName
-  const vh = translateRejectedToVh(h.right.rejected)
+  const fn = _.compose(prettyView, translateRejectedToVh)
+  const vh = fn(h.right.rejected)
   const distr = appService.distributeRejected(vh, { englishConfidence: 50 })
   const xs = distr[subtype]
   if (xs) {
@@ -141,7 +142,8 @@ app.get('/reports/failed/:subtype/:reportId', (req, res) => {
   const txt = fs.readFileSync(fullname, 'utf8')
   const h = JSON.parse(txt)
   const clientName = h.right.clientName
-  const xs = appService.translateFailedToVh(h.right.failed)
+  const fn = _.compose(prettyView, translateFailedToVh)
+  const xs = fn(h.right.failed)
   res.render('failed', { records: xs.length, xs, clientName, reportId, subtype, type: 'failed' })
 })
 
@@ -169,18 +171,21 @@ app.get('/download', (req, res) => {
   const result = JSON.parse(fs.readFileSync(fullname, 'utf8'))
   const h = result.right[type]
   const generalSettings = JSON.parse(fs.readFileSync('db/settings.json'))
-  let distr, vh
+  let distr, vh, fn
   switch (type) {
     case 'succeed':
-      vh = translateSucceedToVh(h)
+      fn = _.compose(prettyView, translateSucceedToVh)
+      vh = fn(h)
       distr = appService.distributeSucceed(vh, generalSettings)
       break
     case 'rejected':
-      vh = translateRejectedToVh(h)
+      fn = _.compose(prettyView, translateRejectedToVh)
+      vh = fn(h)
       distr = appService.distributeRejected(vh)
       break
     case 'failed':
-      vh = appService.translateFailedToVh(h)
+      fn = _.compose(prettyView, translateFailedToVh)
+      vh = fn(h)
       distr = appService.distributeFailed(vh)
       break
   }

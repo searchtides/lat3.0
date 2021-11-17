@@ -8,11 +8,16 @@ const _ = require('underscore')
 const { v4: uuidv4 } = require('uuid')
 const clientsMapPath = path.join(__dirname, '../db/clients_map.json')
 
+const extractErrors = kwMap => {
+  if (kwMap === undefined) return []
+  return _.keys(kwMap).sort().map(k => kwMap[k].left).filter(x => x).map(x => x.error)
+}
+
 const prettyView = xs => {
   return xs.map(h => {
     if (h.angle) h.angle = h.angle.toFixed(1)
     if (h.coef) h.coef = h.coef.toFixed(2)
-    if (h.english) h.english = h.english.toFixed(0)
+    if (h.english) h.english = Number(h.english).toFixed(0)
     return h
   })
 }
@@ -29,9 +34,7 @@ const translateFailedToVh = h => {
 // ::RejectMap->[RejectReportRow]
 const translateRejectedToVh = h => {
   return _.keys(h).map(domain => {
-    const rej = h[domain]
-    const english = (rej.english).toFixed(1)
-    const row = _.extend(h[domain], { domain, english })
+    const row = _.extend({}, { domain }, h[domain])
     return row
   })
 }
@@ -47,11 +50,6 @@ const translateSucceedToVh = h => {
 }
 
 const rearrangeResults = (h, angle) => {
-  const extractErrors = kwMap => {
-    if (kwMap === undefined) return []
-    return _.keys(kwMap).map(k => kwMap[k].left).filter(x => x).map(x => x.error)
-  }
-
   const res = {}
   if (h.right) {
     const succeed = {}
@@ -113,11 +111,24 @@ function genRejectedTabs (subtype, reportId) {
 }
 
 function distributeFailed (xs) {
-  const summary = xs
+  const summary = xs.map(x => {
+    delete x.coef
+    x.keywords = ''
+    if (x.error === undefined) {
+      const errors = extractErrors(x.keywordsMap)
+      if (errors.length) {
+        x.error = errors.join(';')
+        x.keywords = _.keys(x.keywordsMap).sort().join(';')
+      }
+      delete x.keywordsMap
+    }
+    return x
+  })
   return { summary }
 }
 
-function distributeRejected (xs) {
+function distributeRejected (ys) {
+  const xs = ys.map(y => _.omit(y, 'coef'))
   const summary = xs
   const hasMetrics = x => x.dr !== undefined
   const nonEnglish = _.reject(xs, hasMetrics)
@@ -125,7 +136,8 @@ function distributeRejected (xs) {
   return { summary, nonEnglish, lowMetrics }
 }
 
-function distributeSucceed (xs, { spamThreshold, trendAngle, usTraffic }) {
+function distributeSucceed (ys, { spamThreshold, trendAngle, usTraffic }) {
+  const xs = ys.map(y => _.omit(y, 'coef'))
   const summary = xs
   const typeOne = xs.filter(x => x.us_tr >= usTraffic && !x.writeToUs && x.spamFound <= spamThreshold && x.angle >= trendAngle)
   const typeTwo = xs.filter(x => x.us_tr >= usTraffic && x.writeToUs)
