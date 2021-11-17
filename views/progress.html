@@ -28,6 +28,13 @@
   <p></p>
   <div id='messages'></div>
   <script>
+    function addMessage(text) {
+      const div = document.getElementById('messages');
+      const node = document.createElement("div");
+      const message = document.createTextNode(text);
+      node.appendChild(message);
+      div.appendChild(node);
+    }
     var total = 0;
     var loc = window.location, new_uri;
     if (loc.protocol === "https:") {
@@ -40,15 +47,11 @@
     ws.addEventListener('open', () => {console.log('websock opened')});
     ws.addEventListener('message', (event) => {
       console.log(event.data)
+      addMessage(event.data)
       let h = JSON.parse(event.data);
       switch (h.type) {
         case 'message':
-          const div = document.getElementById('messages');
-          const node = document.createElement("div");
-          const message = document.createTextNode(h.data);
-          node.appendChild(message);
-          div.appendChild(node);
-          break;
+         break;
         case 'total':
           total = h.data;
           document.getElementById('complete').style.width = '0%';
