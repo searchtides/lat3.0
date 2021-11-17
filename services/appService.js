@@ -17,6 +17,15 @@ const prettyView = xs => {
   })
 }
 
+// ::FailedMap->[FailedReportRow]
+const translateFailedToVh = h => {
+  return _.keys(h).map(domain => {
+    const fail = h[domain]
+    const row = _.extend({}, { domain }, fail)
+    return row
+  })
+}
+
 // ::RejectMap->[RejectReportRow]
 const translateRejectedToVh = h => {
   return _.keys(h).map(domain => {
@@ -96,6 +105,11 @@ function genRejectedTabs (subtype, reportId) {
     } else return tab
   })
   return xs
+}
+
+function distributeFailed (xs) {
+  const summary = xs
+  return { summary }
 }
 
 function distributeRejected (xs) {
@@ -221,3 +235,5 @@ exports.prettyView = prettyView
 exports.translateSucceedToVh = translateSucceedToVh
 exports.rearrangeResults = rearrangeResults
 exports.translateRejectedToVh = translateRejectedToVh
+exports.translateFailedToVh = translateFailedToVh
+exports.distributeFailed = distributeFailed

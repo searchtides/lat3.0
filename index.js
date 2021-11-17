@@ -141,10 +141,7 @@ app.get('/reports/failed/:subtype/:reportId', (req, res) => {
   const txt = fs.readFileSync(fullname, 'utf8')
   const h = JSON.parse(txt)
   const clientName = h.right.clientName
-  const xs = keys(h.right.failed).map(domain => {
-    const fail = h.right.failed[domain]
-    return _.extend(fail, { domain })
-  })
+  const xs = appService.translateFailedToVh(h.right.failed)
   res.render('failed', { records: xs.length, xs, clientName, reportId, subtype, type: 'failed' })
 })
 
@@ -174,16 +171,17 @@ app.get('/download', (req, res) => {
   const generalSettings = JSON.parse(fs.readFileSync('db/settings.json'))
   let distr, vh
   switch (type) {
-    case 'succeed': {
+    case 'succeed':
       vh = translateSucceedToVh(h)
       distr = appService.distributeSucceed(vh, generalSettings)
       break
-    }
     case 'rejected':
       vh = translateRejectedToVh(h)
       distr = appService.distributeRejected(vh)
       break
     case 'failed':
+      vh = appService.translateFailedToVh(h)
+      distr = appService.distributeFailed(vh)
       break
   }
   const xs = distr[subtype]
