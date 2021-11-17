@@ -82,7 +82,7 @@ const countKeywords = async function (url, keywords) {
       const count = await totalResults(url, [kwd])
       res = { right: count }
     } catch (e) {
-      res = { left: { url, e } }
+      res = { left: { url, error:e } }
     }
     resMap[kwd] = res
   }

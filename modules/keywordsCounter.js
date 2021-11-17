@@ -10,7 +10,7 @@ const keywordsCount = (domain, keywords) => {
     })
     .catch((error) => {
       const e = JSON.stringify(error, Object.getOwnPropertyNames(error))
-      return Promise.resolve({ left: { phase: PHASE, url: domain, e } })
+      return Promise.resolve({ left: { phase: PHASE, url: domain, error:e } })
     })
 }
 
