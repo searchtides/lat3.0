@@ -47,10 +47,11 @@ const translateSucceedToVh = h => {
 }
 
 const rearrangeResults = (h, angle) => {
-  const containLeft = kwMap => {
-    const xs = _.keys(kwMap).map(k => kwMap[k].left)
-    return _.some(xs, x => x)
+  const extractErrors = kwMap => {
+    if (kwMap === undefined) return []
+    return _.keys(kwMap).map(k => kwMap[k].left).filter(x => x).map(x => x.error)
   }
+
   const res = {}
   if (h.right) {
     const succeed = {}
@@ -58,9 +59,13 @@ const rearrangeResults = (h, angle) => {
     const failed = {}
     _.keys(h.right.succeed).forEach(domain => {
       h.right.succeed[domain].angle = (Math.atan(h.right.succeed[domain].coef) * 180) / Math.PI
-      const left = containLeft(h.right.succeed[domain].keywordsMap)
-      if (left) {
+      const kwdMap = h.right.succeed[domain].keywordsMap
+      const errors = extractErrors(kwdMap)
+      if (errors.length) {
         failed[domain] = h.right.succeed[domain]
+        failed[domain].phase = 'keywordsCounter|Other'
+        if (_.some(errors, x => x === 'quota')) { failed[domain].phase = 'keywordCounter|Quotas&Other' }
+        if (_.every(errors, x => x === 'quota')) { failed[domain].phase = 'keywordCounter|QuotasOnly' }
       } else {
         if (h.right.succeed[domain].angle >= angle) {
           succeed[domain] = h.right.succeed[domain]
