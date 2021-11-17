@@ -54,7 +54,7 @@ const totalResults = (site, keywords) => {
   return getCalls(pathToRegister)
     .then(calls => {
       const idx = Math.floor(calls / 100)
-      if (idx === API_KEYS.length) { return Promise.reject('qouta') }
+      if (idx === API_KEYS.length) { return Promise.reject('quota') }
       const apiKey = API_KEYS[idx]
       let q = 'site:' + site
       if (keywords.length) { q += keywords.map(k=> ' "' + k + '"').join(" OR ") }
