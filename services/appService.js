@@ -1,4 +1,5 @@
 require('dotenv').config()
+const { getCalls } = require('../modules/serp')
 const extractDomain = require('extract-domain')
 const fs = require('fs').promises
 const util = require('util')
@@ -7,6 +8,7 @@ const path = require('path')
 const _ = require('underscore')
 const { v4: uuidv4 } = require('uuid')
 const clientsMapPath = path.join(__dirname, '../db/clients_map.json')
+const pathToRegister = path.join(__dirname, '../db/requests.json')
 
 const extractErrors = kwMap => {
   if (kwMap === undefined) return []
@@ -165,8 +167,7 @@ async function addToBlackList (h) {
 
 async function getQuotasRemaining () {
   const apiKeysN = process.env.API_KEYS.split(',').length * 100
-  const txt = await fs.readFile(path.join(__dirname, '../db/requests.json'), 'utf8')
-  const requests = Number(txt.split(' ')[1])
+  const requests = await getCalls(pathToRegister)
   return { serp: apiKeysN - requests }
 }
 

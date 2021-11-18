@@ -1,11 +1,9 @@
 require('dotenv').config()
 const axios = require('axios')
 const fs = require('fs').promises
-const path = require('path')
 const ENDPOINT = 'https://www.googleapis.com/customsearch/v1'
 const ENGINE_ID = '44045c57891c85f46'
 const API_KEYS = process.env.API_KEYS.split(',')
-const pathToRegister = path.join(__dirname, '../db/requests.json')
 
 const getPacificDate = () => {
   const date = new Date()
@@ -82,7 +80,7 @@ const countKeywords = async function (url, keywords) {
       const count = await totalResults(url, [kwd])
       res = { right: count }
     } catch (e) {
-      res = { left: { url, error:e } }
+      res = { left: { url, error: e } }
     }
     resMap[kwd] = res
   }
@@ -91,3 +89,4 @@ const countKeywords = async function (url, keywords) {
 
 exports.countKeywords = countKeywords
 exports.totalResults = totalResults
+exports.getCalls = getCalls
