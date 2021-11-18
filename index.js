@@ -13,7 +13,6 @@ const WebSocketServer = require('ws').WebSocketServer
 const _ = require('underscore')
 const clientsMapPath = 'db/clients_map.json'
 const send = require('./mailer').send
-const qualifier = require('./modules/qualifier')
 const keysN = x => Object.keys(x).length
 const validFs = x => x.replace(/:|T/g, '-')
 
@@ -29,11 +28,11 @@ wss.on('connection', (ws) => {
   })
   t1 = new Date().getTime()
   const task = JSON.parse(fs.readFileSync('db/task.json', 'utf8'))
-  const { trendAngle } = JSON.parse(fs.readFileSync('db/settings.json', 'utf8'))
+  const { trendAngle, englishConfidence } = JSON.parse(fs.readFileSync('db/settings.json', 'utf8'))
   const clientId = task.clientId
   const clientName = task.clientName
   const logger = (x) => ws.send(JSON.stringify(x))
-  qualifier(task, logger)
+  appService.qualifier(task, englishConfidence, logger)
     .then((res) => {
       const h = rearrangeResults(res, trendAngle)
       ws.send(js({ type: 'finish', data: res }))
@@ -126,7 +125,7 @@ app.get('/reports/rejected/:subtype/:reportId', (req, res) => {
   const clientName = h.right.clientName
   const fn = _.compose(prettyView, translateRejectedToVh)
   const vh = fn(h.right.rejected)
-  const distr = appService.distributeRejected(vh, { englishConfidence: 50 })
+  const distr = appService.distributeRejected(vh)
   const xs = distr[subtype]
   if (xs) {
     const tabs = appService.genRejectedTabs(subtype, reportId)

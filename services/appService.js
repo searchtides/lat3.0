@@ -7,8 +7,13 @@ const parse = util.promisify(require('csv-parse'))
 const path = require('path')
 const _ = require('underscore')
 const { v4: uuidv4 } = require('uuid')
+const qual = require('../modules/qualifier')
 const clientsMapPath = path.join(__dirname, '../db/clients_map.json')
 const pathToRegister = path.join(__dirname, '../db/requests.json')
+
+async function qualifier (task, englishConfidence, logger) {
+  return qual(task, englishConfidence, logger, pathToRegister)
+}
 
 const extractErrors = kwMap => {
   if (kwMap === undefined) return []
@@ -255,3 +260,4 @@ exports.rearrangeResults = rearrangeResults
 exports.translateRejectedToVh = translateRejectedToVh
 exports.translateFailedToVh = translateFailedToVh
 exports.distributeFailed = distributeFailed
+exports.qualifier = qualifier

@@ -40,14 +40,13 @@ const getCalls = (pathToRegister) => {
     })
     .catch((e) => {
       calls = 0
-      console.log(pathToRegister)
       return fs.writeFile(pathToRegister, pDate + ' ' + '0')
         .then(() => Promise.resolve(0))
     })
 }
 
 // :: Domain->[String]->Int
-const totalResults = (site, keywords) => {
+const totalResults = (site, keywords, pathToRegister) => {
   let n
   return getCalls(pathToRegister)
     .then(calls => {
@@ -72,14 +71,15 @@ const totalResults = (site, keywords) => {
     })
 }
 /* eslint-enable */
-const countKeywords = async function (url, keywords) {
+const countKeywords = async function (url, keywords, pathToRegister) {
   const resMap = {}
   let res
   for (const kwd of keywords) {
     try {
-      const count = await totalResults(url, [kwd])
+      const count = await totalResults(url, [kwd], pathToRegister)
       res = { right: count }
-    } catch (e) {
+    } catch (error) {
+      const e = JSON.stringify(error, Object.getOwnPropertyNames(error))
       res = { left: { url, error: e } }
     }
     resMap[kwd] = res

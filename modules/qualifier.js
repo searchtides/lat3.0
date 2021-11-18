@@ -4,17 +4,16 @@ const metricsAnalyzer = require('./metricsAnalyzer')
 const countryQualifier = require('./countryQualifier')
 const spamDetector = require('./spamDetector')
 const keywordsCounter = require('./keywordsCounter')
-const ENLISH_THRESHOLD = 50
 
-async function main (task, logger) {
+async function main (task, englishConfidence, logger, pathToRegister) {
   let res
   const { drSettings, spam, keywords, domains, blackList } = task
   res = blackListFilter(domains, blackList)
-  res = await sourceAnalyzer(res, ENLISH_THRESHOLD, logger)
+  res = await sourceAnalyzer(res, englishConfidence, logger)
   res = await metricsAnalyzer(res, drSettings, logger)
   res = await countryQualifier(res, logger)
-  res = await spamDetector(res, spam, logger)
-  res = await keywordsCounter(res, keywords, logger)
+  res = await spamDetector(res, spam, pathToRegister, logger)
+  res = await keywordsCounter(res, keywords, pathToRegister, logger)
 
   return Promise.resolve(res)
 }

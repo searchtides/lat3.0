@@ -3,8 +3,8 @@ const _ = require('lodash')
 const { serial, makeMap } = require('./utils')
 const PHASE = 'spamDetector'
 
-const detectSpam = (domain, spam) => {
-  return totalResults(domain, spam)
+const detectSpam = (domain, spam, pathToRegister) => {
+  return totalResults(domain, spam, pathToRegister)
     .then(n => {
       return Promise.resolve({ right: { url: domain, spamFound: n } })
     })
@@ -14,7 +14,7 @@ const detectSpam = (domain, spam) => {
     })
 }
 
-async function main ({ right, left }, spamKeywords, logger) {
+async function main ({ right, left }, spamKeywords, pathToRegister, logger) {
   if (left) { // forwarding error
     return Promise.resolve({ right, left })
   }
@@ -24,7 +24,7 @@ async function main ({ right, left }, spamKeywords, logger) {
   logger({ type: 'phase', data: PHASE })
   logger({ type: 'attempt', data: 1 })
   logger({ type: 'blockSize', data: domains.length })
-  const funcs = domains.map(domain => () => detectSpam(domain, spamKeywords))
+  const funcs = domains.map(domain => () => detectSpam(domain, spamKeywords, pathToRegister))
   const res = await serial(funcs, logger)
   const success = res.map(x => x.right).filter(x => x)
   const succeedMap = makeMap(success)

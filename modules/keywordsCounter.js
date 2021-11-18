@@ -3,18 +3,18 @@ const _ = require('lodash')
 const { serial, makeMap } = require('./utils')
 const PHASE = 'keywordsCounter'
 
-const keywordsCount = (domain, keywords) => {
-  return countKeywords(domain, keywords)
+const keywordsCount = (domain, keywords, pathToRegister) => {
+  return countKeywords(domain, keywords, pathToRegister)
     .then(h => {
       return Promise.resolve({ right: { url: domain, keywordsMap: h } })
     })
     .catch((error) => {
       const e = JSON.stringify(error, Object.getOwnPropertyNames(error))
-      return Promise.resolve({ left: { phase: PHASE, url: domain, error:e } })
+      return Promise.resolve({ left: { phase: PHASE, url: domain, error: e } })
     })
 }
 
-async function main ({ right, left }, keywords, logger) {
+async function main ({ right, left }, keywords, pathToRegister, logger) {
   if (left) { // forwarding error
     return Promise.resolve({ right, left })
   }
@@ -25,7 +25,7 @@ async function main ({ right, left }, keywords, logger) {
   logger({ type: 'phase', data: PHASE })
   logger({ type: 'attempt', data: 1 })
   logger({ type: 'blockSize', data: domains.length })
-  const funcs = domains.map(domain => () => keywordsCount(domain, keywords))
+  const funcs = domains.map(domain => () => keywordsCount(domain, keywords, pathToRegister))
   const res = await serial(funcs, logger)
   const success = res.map(x => x.right).filter(x => x)
   const succeedMap = makeMap(success)
