@@ -1,6 +1,21 @@
 const parse = require('node-html-parser').parse
 const _ = require('lodash')
 
+const lc = x => x.toString().toLowerCase()
+
+const toNum = function(x) {
+  var body, nominator, res;
+  if (/k|m/i.test(x)) {
+	body = x.slice(0, -1);
+	nominator = lc(x[x.length - 1]) == 'k' ? 1000 : 1000000;
+	res = Number(body) * nominator;
+  } else {
+	res = Number(x.toString().replace(/[^0-9.]/g, ''));
+  }
+  if (!_.isNumber(res)) clog(x);
+  return res;
+};
+
 const coef = async function (html) {
   const root = parse(html)
   const paths = root.querySelectorAll('path')
@@ -57,3 +72,4 @@ const dmap = async function (html) {
 
 exports.getDmap = dmap
 exports.getCoef = coef
+exports.toNum = toNum

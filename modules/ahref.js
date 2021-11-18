@@ -5,7 +5,7 @@ const _ = require('lodash')
 const { serial } = require('./utils')
 const queryUrl = 'https://app.ahrefs.com/site-explorer/overview/v2/subdomains/live?target='
 const TIMEOUT = 60000
-const { getDmap, getCoef } = require('./get')
+const { toNum, getDmap, getCoef } = require('./get')
 const cookiesFilename = path.join(__dirname, '../operational/cookies.json')
 
 // ::DrMap->({Dr, Tr} -> Bool)
@@ -86,7 +86,12 @@ async function getMetrics (browser, cookies, domain) {
     await page.waitForSelector('#organic_traffic_val', { visible: false, timeout: TIMEOUT })
     track.push(domain + ' organic traffic  appeared')
     const tr = await page.$eval('#organic_traffic_val', (element) => { return element.textContent })
-    res.tr = Number(tr.split(' ')[0].replace(/,/g, ''))
+    const tr1Num = Number(tr.split(' ')[0].replace(/,/g, ''))
+    await page.waitForSelector('#numberOfOrganicTraffic', { visible: true, timeout: 0 })
+    const tr2 = await page.$eval('#numberOfOrganicTraffic', (element) => { return element.textContent })
+    const tr2Num = toNum(tr2)
+    res.tr = tr1Num > tr2Num ? tr1Num : tr2Num
+
     await page.waitForSelector('#organic_country_keywords_table', { visible: false, timeout: TIMEOUT })
     const table = await page.$eval('#organic_country_keywords_table', (element) => { return element.outerHTML })
     const dMap = await getDmap(table)
