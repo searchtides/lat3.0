@@ -46,8 +46,7 @@ async function main ({ right, left }, logger) {
   const { succeed, rejected, failed } = right
   const domains = _.keys(succeed)
   const blacklisted = right.blacklisted
-  logger({ type: 'phase', data: PHASE })
-  logger({ type: 'attempt', data: 1 })
+  logger({ type: 'phase', data: { name: PHASE, type: 'singleAttempt' } })
   logger({ type: 'blockSize', data: domains.length })
   const funcs = domains.map(x => () => getCountry(x))
   const res = await serial(funcs, logger)

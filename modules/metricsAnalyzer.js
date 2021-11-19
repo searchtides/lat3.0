@@ -18,6 +18,7 @@ async function main ({ right, left }, drSettings, logger) {
     do {
       logger({ type: 'attempt', data: counter })
       logger({ type: 'blockSize', data: domains.length })
+      logger({ type: 'batchSize', data: BATCH_SIZE })
       domains = await processInBatches(domains, BATCH_SIZE, logger)
         .then(xs => {
           const succeed = xs.filter(x => x.right).map(x => x.right)
@@ -30,7 +31,7 @@ async function main ({ right, left }, drSettings, logger) {
       counter++
     } while (counter <= ATTEMPTS && domains.length > 0)
   }
-  logger({ type: 'phase', data: PHASE })
+  logger({ type: 'phase', data: { name: PHASE, type: 'multiAttempt' } })
   await loop()
   const { succeed, rejected, failed } = right
   const metricsPassed = metricsPass(drSettings)

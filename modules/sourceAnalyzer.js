@@ -27,6 +27,7 @@ async function main ({ right, left }, threshold = 50, logger) {
     do {
       logger({ type: 'attempt', data: counter })
       logger({ type: 'blockSize', data: domains.length })
+      logger({ type: 'batchSize', data: BATCH_SIZE })
       domains = await download.pBatches(domains, BATCH_SIZE, firstStep, null, logger)
         .then(xs => {
           const succeed = xs.filter(x => x.right).map(x => x.right)
@@ -42,7 +43,7 @@ async function main ({ right, left }, threshold = 50, logger) {
       counter++
     } while (counter <= ATTEMPTS && domains.length > 0)
   }
-  logger({ type: 'phase', data: PHASE })
+  logger({ type: 'phase', data: { name: PHASE, type: 'multiAttempt' } })
   await loop()
   const p = x => x.english > threshold
   const valid = _.filter(succeedTotal, p)

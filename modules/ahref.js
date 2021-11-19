@@ -67,7 +67,7 @@ async function getCookies (browser, logger) {
   }
 }
 
-async function getMetrics (browser, cookies, domain) {
+async function getMetrics (browser, cookies, domain, logger) {
   const res = {}
   const track = []
   const page = await browser.newPage()
@@ -105,16 +105,19 @@ async function getMetrics (browser, cookies, domain) {
     res.coef = await getCoef(chart)
     await page.close()
     res.url = domain
+    logger({ type: 'tick', data: 1 })
     return Promise.resolve({ right: res })
   } catch (error) {
     const e = JSON.stringify(error, Object.getOwnPropertyNames(error))
     await page.close()
+    logger({ type: 'tick', data: 1 })
     return Promise.resolve({ left: { error: e, url: domain } })
   }
 }
 
-async function getBatchMetrics (browser, cookies, domains) {
-  const ps = domains.map(domain => getMetrics(browser, cookies, domain))
+async function getBatchMetrics (browser, cookies, domains, logger) {
+  logger({ type: 'chunkSize', data: domains.length })
+  const ps = domains.map(domain => getMetrics(browser, cookies, domain, logger))
   const results = await Promise.all(ps)
   return Promise.resolve(results)
 }
@@ -128,7 +131,7 @@ const processInBatches = (domains, batchSize = 20, logger) => {
       return getCookies(browser, logger)
     })
     .then(cookies => {
-      const funcs = chunks.map(chunk => () => getBatchMetrics(_browser, cookies, chunk))
+      const funcs = chunks.map(chunk => () => getBatchMetrics(_browser, cookies, chunk, logger))
       return serial(funcs, logger)
     })
     .then(res => {

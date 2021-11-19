@@ -4,8 +4,9 @@ const _ = require('lodash')
 const { serial } = require('./utils')
 const TIMEOUT = 60000
 
-const evaluateBatch = (browser, urls, storageFolder, fn) => {
-  const ps = urls.map(url => evaluate(browser, url, storageFolder, fn))
+const evaluateBatch = (browser, urls, storageFolder, fn, logger) => {
+  logger({ type: 'chunkSize', data: urls.length })
+  const ps = urls.map(url => evaluate(browser, url, storageFolder, fn, logger))
   let _res
   return Promise.all(ps)
     .then(res => {
@@ -17,7 +18,7 @@ const evaluateBatch = (browser, urls, storageFolder, fn) => {
     })
 }
 
-const evaluate = (browser, url, storageFolder, fn = () => '') => {
+const evaluate = (browser, url, storageFolder, fn = () => '', logger) => {
   let _page, _data, t2
   const t1 = new Date().getTime()
   return browser.newPage()
@@ -42,7 +43,10 @@ const evaluate = (browser, url, storageFolder, fn = () => '') => {
       const e = JSON.stringify(error, Object.getOwnPropertyNames(error))
       return Promise.resolve({ left: { error: e, url } })
     })
-    .finally(() => _page.close())
+    .finally(() => {
+      logger({ type: 'tick', data: 1 })
+      return _page.close()
+    })
 }
 
 const pBatches = (domains, batchSize = 100, fn, storageFolder, logger) => {
@@ -51,7 +55,7 @@ const pBatches = (domains, batchSize = 100, fn, storageFolder, logger) => {
   return puppeteer.launch({ headless: true, args: ['--no-sandbox', '--ignore-certificate-errors'] })
     .then(browser => {
       _browser = browser
-      const funcs = chunks.map(chunk => () => evaluateBatch(browser, chunk, storageFolder, fn))
+      const funcs = chunks.map(chunk => () => evaluateBatch(browser, chunk, storageFolder, fn, logger))
       return serial(funcs, logger)
         .then(res => {
           _browser.close()
