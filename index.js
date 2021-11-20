@@ -31,7 +31,11 @@ wss.on('connection', (ws) => {
   const { trendAngle, englishConfidence } = JSON.parse(fs.readFileSync('db/settings.json', 'utf8'))
   const clientId = task.clientId
   const clientName = task.clientName
-  const logger = (x) => ws.send(JSON.stringify(x))
+  const log = []
+  const logger = (x) => {
+    ws.send(JSON.stringify(x))
+    log.push(x)
+  }
   appService.qualifier(task, englishConfidence, logger)
     .then((res) => {
       const h = rearrangeResults(res, trendAngle)
@@ -46,6 +50,10 @@ wss.on('connection', (ws) => {
       h.right.clientId = clientId
       h.right.clientName = clientName
       fs.writeFileSync(filename, JSON.stringify(h))
+      if (process.env.DEV_MODE === 'on') {
+        const logFilename = path.join(__dirname, 'logs', root + '.json')
+        fs.writeFileSync(logFilename, JSON.stringify(log))
+      }
     })
 })
 

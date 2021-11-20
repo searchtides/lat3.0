@@ -1,6 +1,8 @@
 datasets/
 results/*.*
 !/results/.gitkeep
+logs/*.*
+!/logs/.gitkeep
 temp/
 .*
 !.gitignore
