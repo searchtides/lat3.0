@@ -12,7 +12,6 @@ const port = 3000
 const WebSocketServer = require('ws').WebSocketServer
 const _ = require('underscore')
 const clientsMapPath = 'db/clients_map.json'
-const send = require('./mailer').send
 const keysN = x => Object.keys(x).length
 const validFs = x => x.replace(/:|T/g, '-')
 
