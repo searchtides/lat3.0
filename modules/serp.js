@@ -32,7 +32,8 @@ const getCalls = (pathToRegister) => {
       [date, _calls] = txt.split(' ')
       if (date != pDate) {
         calls = 0
-        return fs.writeFile(pathToRegister, pDate + ' ' + '0');
+        return fs.writeFile(pathToRegister, pDate + ' ' + '0')
+				.then(()=>Promise.resolve(calls))
       } else {
         calls = Number(_calls)
         return Promise.resolve(calls)
