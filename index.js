@@ -76,6 +76,7 @@ app.get('/reports', (req, res) => {
     if (err) { res.send('filesystem error') }
     const xs = files
       .filter(file => file !== '.gitkeep')
+      .reverse()
       .map(file => {
         const filename = path.join(__dirname, 'results', file)
         return JSON.parse(fs.readFileSync(filename, 'utf-8'))
