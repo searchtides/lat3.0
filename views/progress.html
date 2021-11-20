@@ -28,6 +28,19 @@
   <p></p>
   <div id='messages'></div>
   <script>
+    function setComplete(n, total) {
+      let elem = document.getElementById('complete');
+      let width = (100*n/total).toFixed(0) + '%';
+      elem.style.width = width;
+    }
+    function resetProgress(total) {
+      document.getElementById('complete').style.width = '0%';
+      document.getElementById('right').innerHTML = total;
+    }
+    function resetMessages() {
+      const div = document.getElementById('messages');
+      div.innerHTML = '';
+    }
     function addMessage(text) {
       const div = document.getElementById('messages');
       const node = document.createElement("div");
@@ -35,7 +48,6 @@
       node.appendChild(message);
       div.appendChild(node);
     }
-    var total = 0;
     var loc = window.location, new_uri;
     if (loc.protocol === "https:") {
         new_uri = "wss:";
@@ -44,26 +56,48 @@
     }
     new_uri += "//" + loc.host.replace('3000', '8080');
     const ws = new WebSocket(new_uri);
+    let phaseType, type, total, processed;
     ws.addEventListener('open', () => {console.log('websock opened')});
     ws.addEventListener('message', (event) => {
-      console.log(event.data)
-      addMessage(event.data)
-      let h = JSON.parse(event.data);
+    let h = JSON.parse(event.data)
+    console.log(h)
       switch (h.type) {
+        case 'attempt':
+          addMessage(h.type + ': ' + h.data);
+         break;
         case 'message':
          break;
-        case 'total':
+        case 'phase':
+          phase = h.data.name;
+          phaseType = h.data.type;
+          resetMessages();
+          addMessage(phase);
+          break;
+        case 'blockSize':
+          if (phaseType == 'singleAttempt') {
+            processed = 0;
+            total = h.data;
+            addMessage('processing: ' + total + ' records');
+            resetProgress(total)
+          }
+          break;
+        case 'chunkSize':
+          processed = 0;
           total = h.data;
-          document.getElementById('complete').style.width = '0%';
-          document.getElementById('right').innerHTML = total;
+          addMessage('processing: ' + total + ' records');
+          resetProgress(total)
           break;
         case 'index':
-          let elem = document.getElementById('complete'); 
-          let width = (100*h.data/total).toFixed(0) + '%';
-          elem.style.width = width;
+          if (phaseType == 'singleAttempt') {
+            processed++;
+            setComplete(processed, total)
+          }
+          break;
+        case 'tick':
+          processed++;
+          setComplete(processed, total)
           break;
         case 'finish':
-          document.getElementById('complete').style.width = '100%';
           ws.close();
           window.location.href = '/reports'
           break;
