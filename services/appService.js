@@ -13,6 +13,23 @@ const pathToRegister = path.join(__dirname, '../db/requests.json')
 const keysN = x => Object.keys(x).length
 const validFs = x => x.replace(/:|T/g, '-')
 
+async function getRejected (subtype, reportId) {
+  const filename = validFs(reportId) + '.json'
+  const fullname = path.join(__dirname, '..', 'results', filename)
+  const txt = await fs.readFile(fullname, 'utf8')
+  const h = JSON.parse(txt)
+  const clientName = h.right.clientName
+  const fn = _.compose(prettyView, translateRejectedToVh)
+  const vh = fn(h.right.rejected)
+  const distr = distributeRejected(vh)
+  const xs = distr[subtype]
+  if (xs) {
+    const tabs = genRejectedTabs(subtype, reportId)
+    const result = { records: xs.length, xs, clientName, reportId, tabs, subtype, type: 'rejected' }
+    return { right: result }
+  } else { return { left: true } }
+}
+
 async function getSucceed (subtype, reportId) {
   const settingsPath = path.join(__dirname, '../db/settings.json')
   const generalSettings = await fs.readFile(settingsPath).then(JSON.parse)
@@ -315,3 +332,4 @@ exports.distributeFailed = distributeFailed
 exports.qualifier = qualifier
 exports.getReports = getReports
 exports.getSucceed = getSucceed
+exports.getRejected = getRejected

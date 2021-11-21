@@ -82,21 +82,11 @@ app.get('/reports/succeed/:subtype/:reportId', async (req, res) => {
   } else res.send('page not found')
 })
 
-app.get('/reports/rejected/:subtype/:reportId', (req, res) => {
+app.get('/reports/rejected/:subtype/:reportId', async (req, res) => {
   const { subtype, reportId } = req.params
-  const filename = validFs(reportId) + '.json'
-  const fullname = path.join(__dirname, 'results', filename)
-  const txt = fs.readFileSync(fullname, 'utf8')
-  const h = JSON.parse(txt)
-  const clientName = h.right.clientName
-  const fn = _.compose(prettyView, translateRejectedToVh)
-  const vh = fn(h.right.rejected)
-  const distr = appService.distributeRejected(vh)
-  const xs = distr[subtype]
-  if (xs) {
-    const tabs = appService.genRejectedTabs(subtype, reportId)
-    res.render('rejected',
-      { records: xs.length, xs, clientName, reportId, tabs, subtype, type: 'rejected' })
+  const result = await appService.getRejected(subtype, reportId)
+  if (result.right) {
+    res.render('rejected', result.right)
   } else res.send('page not found')
 })
 
