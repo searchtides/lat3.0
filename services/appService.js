@@ -11,6 +11,26 @@ const qual = require('../modules/qualifier')
 const clientsMapPath = path.join(__dirname, '../db/clients_map.json')
 const pathToRegister = path.join(__dirname, '../db/requests.json')
 const keysN = x => Object.keys(x).length
+const validFs = x => x.replace(/:|T/g, '-')
+
+async function getSucceed (subtype, reportId) {
+  const settingsPath = path.join(__dirname, '../db/settings.json')
+  const generalSettings = await fs.readFile(settingsPath).then(JSON.parse)
+  const filename = validFs(reportId) + '.json'
+  const fullname = path.join(__dirname, '..', 'results', filename)
+  const txt = await fs.readFile(fullname, 'utf8')
+  const h = JSON.parse(txt)
+  const clientName = h.right.clientName
+  const fn = _.compose(prettyView, translateSucceedToVh)
+  const vh = fn(h.right.succeed)
+  const distr = distributeSucceed(vh, generalSettings)
+  const xs = distr[subtype]
+  if (xs) {
+    const tabs = genSuccessTabs(subtype, reportId)
+    const result = { records: xs.length, success: xs, clientName, reportId, tabs, subtype, type: 'succeed' }
+    return { right: result }
+  } else { return { left: true } }
+}
 
 async function getReports () {
   const files = await fs.readdir(path.join(__dirname, '../results'))
@@ -294,3 +314,4 @@ exports.translateFailedToVh = translateFailedToVh
 exports.distributeFailed = distributeFailed
 exports.qualifier = qualifier
 exports.getReports = getReports
+exports.getSucceed = getSucceed

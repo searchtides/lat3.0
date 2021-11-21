@@ -74,22 +74,11 @@ app.get('/reports', async (req, res) => {
   res.render('reports', { xs })
 })
 
-app.get('/reports/succeed/:subtype/:reportId', (req, res) => {
-  const generalSettings = JSON.parse(fs.readFileSync('db/settings.json'))
+app.get('/reports/succeed/:subtype/:reportId', async (req, res) => {
   const { subtype, reportId } = req.params
-  const filename = validFs(reportId) + '.json'
-  const fullname = path.join(__dirname, 'results', filename)
-  const txt = fs.readFileSync(fullname, 'utf8')
-  const h = JSON.parse(txt)
-  const clientName = h.right.clientName
-  const fn = _.compose(prettyView, translateSucceedToVh)
-  const vh = fn(h.right.succeed)
-  const distr = appService.distributeSucceed(vh, generalSettings)
-  const xs = distr[subtype]
-  if (xs) {
-    const tabs = appService.genSuccessTabs(subtype, reportId)
-    res.render('success',
-      { records: xs.length, success: xs, clientName, reportId, tabs, subtype, type: 'succeed' })
+  const result = await appService.getSucceed(subtype, reportId)
+  if (result.right) {
+    res.render('success', result.right)
   } else res.send('page not found')
 })
 
