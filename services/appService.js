@@ -10,6 +10,38 @@ const { v4: uuidv4 } = require('uuid')
 const qual = require('../modules/qualifier')
 const clientsMapPath = path.join(__dirname, '../db/clients_map.json')
 const pathToRegister = path.join(__dirname, '../db/requests.json')
+const keysN = x => Object.keys(x).length
+
+async function getReports () {
+  const files = await fs.readdir(path.join(__dirname, '../results'))
+  const filenames = files
+    .filter(file => file !== '.gitkeep')
+    .reverse()
+    .map(file => path.join(__dirname, '../results', file))
+  const ts = await Promise.all(filenames.map(async (file) => await fs.readFile(file, 'utf8')))
+  const xs = ts.map(x => JSON.parse(x)).map(x => x.right).filter(x => x)
+  const ys = xs.map(x => {
+    const succeed = keysN(x.succeed)
+    const rejected = keysN(x.rejected)
+    const failed = keysN(x.failed)
+    const blacklisted = x.blacklisted ? keysN(x.blacklisted) : 0
+    return {
+      timestamp: x.timestamp,
+      blacklisted,
+      blacklistedUrl: '/reports/blacklisted/' + x.timestamp,
+      succeed,
+      succeedUrl: '/reports/succeed/summary/' + x.timestamp,
+      rejected,
+      rejectedUrl: '/reports/rejected/summary/' + x.timestamp,
+      failed,
+      failedUrl: '/reports/failed/summary/' + x.timestamp,
+      elapsedTime: x.elapsedTime,
+      total: succeed + rejected + failed + blacklisted,
+      clientName: x.clientName
+    }
+  })
+  return ys
+}
 
 async function qualifier (task, englishConfidence, logger) {
   return qual(task, englishConfidence, logger, pathToRegister)
@@ -261,3 +293,4 @@ exports.translateRejectedToVh = translateRejectedToVh
 exports.translateFailedToVh = translateFailedToVh
 exports.distributeFailed = distributeFailed
 exports.qualifier = qualifier
+exports.getReports = getReports

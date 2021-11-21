@@ -12,7 +12,6 @@ const port = 3000
 const WebSocketServer = require('ws').WebSocketServer
 const _ = require('underscore')
 const clientsMapPath = 'db/clients_map.json'
-const keysN = x => Object.keys(x).length
 const validFs = x => x.replace(/:|T/g, '-')
 
 const wss = new WebSocketServer({ port: 8080 })
@@ -70,39 +69,9 @@ app.get('/', async (req, res) => {
   }
 })
 
-app.get('/reports', (req, res) => {
-  fs.readdir('./results', (err, files) => {
-    if (err) { res.send('filesystem error') }
-    const xs = files
-      .filter(file => file !== '.gitkeep')
-      .reverse()
-      .map(file => {
-        const filename = path.join(__dirname, 'results', file)
-        return JSON.parse(fs.readFileSync(filename, 'utf-8'))
-      })
-    const rs = xs.map(x => x.right).filter(x => x)
-    const ys = rs.map(x => {
-      const succeed = keysN(x.succeed)
-      const rejected = keysN(x.rejected)
-      const failed = keysN(x.failed)
-      const blacklisted = x.blacklisted ? keysN(x.blacklisted) : 0
-      return {
-        timestamp: x.timestamp,
-        blacklisted,
-        blacklistedUrl: '/reports/blacklisted/' + x.timestamp,
-        succeed,
-        succeedUrl: '/reports/succeed/summary/' + x.timestamp,
-        rejected,
-        rejectedUrl: '/reports/rejected/summary/' + x.timestamp,
-        failed,
-        failedUrl: '/reports/failed/summary/' + x.timestamp,
-        elapsedTime: x.elapsedTime,
-        total: succeed + rejected + failed + blacklisted,
-        clientName: x.clientName
-      }
-    })
-    res.render('reports', { xs: ys })
-  })
+app.get('/reports', async (req, res) => {
+  const xs = await appService.getReports()
+  res.render('reports', { xs })
 })
 
 app.get('/reports/succeed/:subtype/:reportId', (req, res) => {
