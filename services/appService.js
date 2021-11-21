@@ -13,6 +13,22 @@ const pathToRegister = path.join(__dirname, '../db/requests.json')
 const keysN = x => Object.keys(x).length
 const validFs = x => x.replace(/:|T/g, '-')
 
+async function getBlacklisted (reportId) {
+  const filename = validFs(reportId) + '.json'
+  const fullname = path.join(__dirname, '..', 'results', filename)
+  const txt = await fs.readFile(fullname, 'utf8')
+  const h = JSON.parse(txt)
+  const clientName = h.right.clientName
+  let xs
+  if (h.right.blacklisted) {
+    xs = _.keys(h.right.blacklisted).map(domain => {
+      const blacklist = h.right.blacklisted[domain]
+      return _.extend({}, blacklist, { domain })
+    })
+  } else { xs = [] }
+  return { records: xs.length, xs, clientName, reportId }
+}
+
 async function getFailed (subtype, reportId) {
   const filename = validFs(reportId) + '.json'
   const fullname = path.join(__dirname, '..', 'results', filename)
@@ -348,3 +364,4 @@ exports.getReports = getReports
 exports.getSucceed = getSucceed
 exports.getRejected = getRejected
 exports.getFailed = getFailed
+exports.getBlacklisted = getBlacklisted

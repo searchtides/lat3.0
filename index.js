@@ -98,21 +98,10 @@ app.get('/reports/failed/:subtype/:reportId', async (req, res) => {
   } else res.send('page not found')
 })
 
-app.get('/reports/blacklisted/:reportId', (req, res) => {
+app.get('/reports/blacklisted/:reportId', async (req, res) => {
   const { reportId } = req.params
-  const filename = validFs(reportId) + '.json'
-  const fullname = path.join(__dirname, 'results', filename)
-  const txt = fs.readFileSync(fullname, 'utf8')
-  const h = JSON.parse(txt)
-  const clientName = h.right.clientName
-  let xs
-  if (h.right.blacklisted) {
-    xs = keys(h.right.blacklisted).map(domain => {
-      const blacklist = h.right.blacklisted[domain]
-      return _.extend({}, blacklist, { domain })
-    })
-  } else { xs = [] }
-  res.render('blacklisted', { records: xs.length, xs, clientName, reportId })
+  const result = await appService.getBlacklisted(reportId)
+  res.render('blacklisted', result)
 })
 
 app.get('/download', (req, res) => {
