@@ -10,7 +10,7 @@ test*
 !/downloads/.gitkeep
 cookies.json
 /db/*.*
-!/results/*.*
+/results/*.*
 !/results/.gitkeep
 operational/*.*
 !/operational/.gitkeep
