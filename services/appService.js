@@ -13,6 +13,14 @@ const pathToRegister = path.join(__dirname, '../db/requests.json')
 const keysN = x => Object.keys(x).length
 const validFs = x => x.replace(/:|T/g, '-')
 
+async function getLogs () {
+  const files = await fs.readdir(path.join(__dirname, '../logs'))
+  const filenames = files
+    .filter(file => file !== '.gitkeep')
+    .map(x => _.extend({}, { timestamp: x, url: '/downlog?filename=' + x }))
+  return filenames
+}
+
 async function getBlacklisted (reportId) {
   const filename = validFs(reportId) + '.json'
   const fullname = path.join(__dirname, '..', 'results', filename)
@@ -365,3 +373,4 @@ exports.getSucceed = getSucceed
 exports.getRejected = getRejected
 exports.getFailed = getFailed
 exports.getBlacklisted = getBlacklisted
+exports.getLogs = getLogs

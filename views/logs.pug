@@ -1,0 +1,14 @@
+html
+  head
+    style
+      include ./style.css
+    title= "Reports"
+  a(href='/') Go to start
+  p
+  table
+    tr
+      th Timestamp
+    each x in xs
+      tr
+        td 
+          a(href=`${x.url}`) #{x.timestamp}

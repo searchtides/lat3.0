@@ -69,6 +69,17 @@ app.get('/', async (req, res) => {
   }
 })
 
+app.get('/downlog', async (req, res) => {
+  const { filename } = req.query
+  const fullDestName = path.join(__dirname, 'logs', filename)
+  res.download(fullDestName, filename)
+})
+
+app.get('/logs', async (req, res) => {
+  const xs = await appService.getLogs()
+  res.render('logs', { xs })
+})
+
 app.get('/reports', async (req, res) => {
   const xs = await appService.getReports()
   res.render('reports', { xs })
