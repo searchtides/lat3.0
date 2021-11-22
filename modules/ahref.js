@@ -87,7 +87,7 @@ async function getMetrics (browser, cookies, domain, logger) {
     track.push(domain + ' organic traffic  appeared')
     const tr = await page.$eval('#organic_traffic_val', (element) => { return element.textContent })
     const tr1Num = Number(tr.split(' ')[0].replace(/,/g, ''))
-    await page.waitForSelector('#numberOfOrganicTraffic', { visible: true, timeout: 0 })
+    await page.waitForSelector('#numberOfOrganicTraffic', { visible: true, timeout: TIMEOUT })
     const tr2 = await page.$eval('#numberOfOrganicTraffic', (element) => { return element.textContent })
     const tr2Num = toNum(tr2)
     res.tr = tr1Num > tr2Num ? tr1Num : tr2Num
