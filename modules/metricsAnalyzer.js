@@ -1,7 +1,8 @@
+require('dotenv').config()
 const _ = require('lodash')
 const { metricsPass, processInBatches } = require('./ahref')
 const { makeMap } = require('./utils')
-const BATCH_SIZE = 20
+const BATCH_SIZE = process.env.AHREF_BUTCH_SIZE
 const ATTEMPTS = 5
 const PHASE = 'metricsAnalyzer'
 
