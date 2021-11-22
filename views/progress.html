@@ -80,11 +80,17 @@
             addMessage('processing: ' + total + ' records');
             resetProgress(total)
           }
+          if (phaseType == 'multiAttempt') {
+            processed = 0;
+            total = h.data;
+            addMessage('processing: ' + total + ' records');
+            resetProgress(total)
+          }
           break;
         case 'chunkSize':
           processed = 0;
           total = h.data;
-          addMessage('processing: ' + total + ' records');
+          addMessage('  processing chunck of : ' + total + ' records');
           resetProgress(total)
           break;
         case 'index':
