@@ -50,7 +50,7 @@ async function main ({ right, left }, threshold = 50, logger) {
   const invalid = _.reject(succeedTotal, p)
   const succeed = makeMap(valid)
   const rejected = makeMap(invalid)
-  const failed = makeMap(failedLocal.map(x => _.extend({}, x, { phase: PHASE })))
+  const failed = makeMap(failedLocal.map(x => _.extend({}, x.left, { phase: PHASE })))
   return Promise.resolve({ right: { succeed, rejected, failed, blacklisted } })
 }
 module.exports = main
