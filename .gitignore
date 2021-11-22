@@ -1,10 +1,4 @@
 datasets/
-results/*.*
-!/results/.gitkeep
-operational/*.*
-!/operational/.gitkeep
-logs/*.*
-!/logs/.gitkeep
 temp/
 .*
 !.gitignore
@@ -16,4 +10,10 @@ test*
 !/downloads/.gitkeep
 cookies.json
 /db/*.*
-!/db/.gitkeep
+!/results/*.*
+!/results/.gitkeep
+operational/*.*
+!/operational/.gitkeep
+/logs/*.*
+!/logs/.gitkeep
+/db/.gitkeep
