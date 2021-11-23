@@ -119,7 +119,7 @@ async function getBatchMetrics (browser, cookies, domains, logger) {
   logger({ type: 'chunkSize', data: domains.length })
   const ps = domains.map(domain => getMetrics(browser, cookies, domain, logger))
   const results = await Promise.all(ps)
-  logger({type:'results', data:results.length})
+  logger({ type: 'results', data: results.length })
   return Promise.resolve(results)
 }
 
