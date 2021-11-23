@@ -101,6 +101,8 @@ async function getReports () {
     const rejected = keysN(x.rejected)
     const failed = keysN(x.failed)
     const blacklisted = x.blacklisted ? keysN(x.blacklisted) : 0
+    const total = succeed + rejected + failed + blacklisted
+    const average = (x.elapsedTime / total).toFixed(1)
     return {
       timestamp: x.timestamp,
       blacklisted,
@@ -112,7 +114,8 @@ async function getReports () {
       failed,
       failedUrl: '/reports/failed/summary/' + x.timestamp,
       elapsedTime: x.elapsedTime,
-      total: succeed + rejected + failed + blacklisted,
+      total,
+      average,
       clientName: x.clientName
     }
   })

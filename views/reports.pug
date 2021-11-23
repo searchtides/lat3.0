@@ -14,7 +14,8 @@ html
       th Rejected
       th Failed
       th Blacklisted
-      th Elapsed Time
+      th Elapsed Time, sec
+      th Average, sec
     each x in xs
       tr
         td  #{x.timestamp}
@@ -29,3 +30,4 @@ html
         td
           a(href=`${x.blacklistedUrl}`) #{x.blacklisted}
         td #{x.elapsedTime}
+        td #{x.average}
