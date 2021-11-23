@@ -10,11 +10,11 @@ async function main ({ right, left }, drSettings, logger) {
   if (left) { // forwarding error
     return Promise.resolve({ right, left })
   }
+  const { succeed, rejected, failed, blacklisted } = right
   let succeedTotal = []
   let failedLocal
   let counter = 1
-  let domains = _.keys(right.succeed)
-  const blacklisted = right.blacklisted
+  let domains = _.keys(succeed)
   const loop = async value => {
     do {
       logger({ type: 'attempt', data: counter })
@@ -33,23 +33,28 @@ async function main ({ right, left }, drSettings, logger) {
     } while (counter <= ATTEMPTS && domains.length > 0)
   }
   logger({ type: 'phase', data: { name: PHASE, type: 'multiAttempt' } })
-  await loop()
-  const { succeed, rejected, failed } = right
-  const metricsPassed = metricsPass(drSettings)
-  const fMap = makeMap(failedLocal.map(x => _.extend({}, x.left, { phase: PHASE })))
-  const failedMap = _.extend({}, failed, fMap)
-  const passed = _.filter(succeedTotal, metricsPassed)
-  const notPassed = _.reject(succeedTotal, metricsPassed)
-  const notPassedMap = makeMap(notPassed)
-  const succeedMap = makeMap(passed)
-  _.keys(succeedMap).forEach(domain => {
-    succeedMap[domain] = _.extend({}, succeedMap[domain], succeed[domain])
-  })
-  _.keys(notPassedMap).forEach(domain => {
-    notPassedMap[domain] = _.extend({}, succeed[domain], notPassedMap[domain])
-  })
-  const rejectedMap = _.extend({}, rejected, notPassedMap)
-  const res = { succeed: succeedMap, rejected: rejectedMap, failed: failedMap, blacklisted }
+  let res
+  if (domains.length !== 0) {
+    await loop()
+    const metricsPassed = metricsPass(drSettings)
+    const fMap = makeMap(failedLocal.map(x => _.extend({}, x.left, { phase: PHASE })))
+    const failedMap = _.extend({}, failed, fMap)
+    const passed = _.filter(succeedTotal, metricsPassed)
+    const notPassed = _.reject(succeedTotal, metricsPassed)
+    const notPassedMap = makeMap(notPassed)
+    const succeedMap = makeMap(passed)
+    _.keys(succeedMap).forEach(domain => {
+      succeedMap[domain] = _.extend({}, succeedMap[domain], succeed[domain])
+    })
+    _.keys(notPassedMap).forEach(domain => {
+      notPassedMap[domain] = _.extend({}, succeed[domain], notPassedMap[domain])
+    })
+    const rejectedMap = _.extend({}, rejected, notPassedMap)
+    res = { succeed: succeedMap, rejected: rejectedMap, failed: failedMap, blacklisted }
+  } else {
+    logger({ type: 'message', data: 'skip' })
+    res = { succeed, rejected, failed, blacklisted }
+  }
   return Promise.resolve({ right: res })
 }
 
