@@ -1,4 +1,5 @@
 require('dotenv').config()
+const favicon = require('serve-favicon')
 const appService = require('./services/appService')
 const { keys } = require('./modules/utils')
 const { rearrangeResults, translateFailedToVh, translateRejectedToVh, translateSucceedToVh, prettyView } = appService
@@ -58,6 +59,7 @@ wss.on('connection', (ws) => {
 app.use(fileUpload())
 app.set('view engine', 'pug')
 app.set('views', './views')
+app.use(favicon('favicon.png'))
 
 app.get('/', async (req, res) => {
   const clientsList = await appService.getClients()
