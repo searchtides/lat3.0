@@ -4,6 +4,8 @@ const metricsAnalyzer = require('./metricsAnalyzer')
 const countryQualifier = require('./countryQualifier')
 const spamDetector = require('./spamDetector')
 const keywordsCounter = require('./keywordsCounter')
+const fs = require('fs').promises
+const path = require('path')
 
 async function main (task, englishConfidence, logger, pathToRegister) {
   let res
@@ -11,6 +13,7 @@ async function main (task, englishConfidence, logger, pathToRegister) {
   res = blackListFilter(domains, blackList)
   res = await sourceAnalyzer(res, englishConfidence, logger)
   res = await metricsAnalyzer(res, drSettings, logger)
+  await fs.writeFile(path.join(__dirname, '..', 'logs', 'afterMetrics.json'), JSON.stringify(res))
   res = await countryQualifier(res, logger)
   res = await spamDetector(res, spam, pathToRegister, logger)
   res = await keywordsCounter(res, keywords, pathToRegister, logger)
