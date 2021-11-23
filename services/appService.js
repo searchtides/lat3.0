@@ -17,6 +17,7 @@ async function getLogs () {
   const files = await fs.readdir(path.join(__dirname, '../logs'))
   const filenames = files
     .filter(file => file !== '.gitkeep')
+    .reverse()
     .map(x => _.extend({}, { timestamp: x, url: '/downlog?filename=' + x }))
   return filenames
 }
