@@ -24,8 +24,8 @@ async function main ({ right, left }, drSettings, logger) {
         .then(xs => {
           const succeed = xs.filter(x => x.right).map(x => x.right)
           succeedTotal = succeedTotal.concat(succeed)
-
           failedLocal = xs.filter(x => x.left)
+          logger({ type: 'dev', data: { succeed: succeedTotal.length, failed: failedLocal.length } })
           const domains = failedLocal.map(x => x.left.url)
           return Promise.resolve(domains)
         })
