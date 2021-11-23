@@ -186,7 +186,7 @@ app.get('/get_settings', (req, res) => {
       return Promise.resolve(h)
     })
     .catch(e => {
-      h = { spamThreshold: 0, trendAngle: 5, usTraffic: 80 }
+      h = { spamThreshold: 0, trendAngle: 5, usTraffic: 80, englishConfidence: 50 }
       fs.writeFileSync('db/settings.json', JSON.stringify(h))
       return Promise.resolve(h)
     })
