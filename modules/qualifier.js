@@ -10,6 +10,7 @@ const path = require('path')
 async function main (task, englishConfidence, logger, pathToRegister) {
   let res
   const { drSettings, spam, keywords, domains, blackList } = task
+  const total = domains.length
   res = blackListFilter(domains, blackList)
   res = await sourceAnalyzer(res, englishConfidence, logger)
   res = await metricsAnalyzer(res, drSettings, logger)
@@ -17,7 +18,7 @@ async function main (task, englishConfidence, logger, pathToRegister) {
   res = await countryQualifier(res, logger)
   res = await spamDetector(res, spam, pathToRegister, logger)
   res = await keywordsCounter(res, keywords, pathToRegister, logger)
-
+  res.total = total
   return Promise.resolve(res)
 }
 

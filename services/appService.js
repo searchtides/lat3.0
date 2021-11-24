@@ -101,7 +101,7 @@ async function getReports () {
     const rejected = keysN(x.rejected)
     const failed = keysN(x.failed)
     const blacklisted = x.blacklisted ? keysN(x.blacklisted) : 0
-    const total = succeed + rejected + failed + blacklisted
+    const total = x.total
     const average = (x.elapsedTime / total).toFixed(1)
     return {
       timestamp: x.timestamp,
@@ -194,6 +194,7 @@ const rearrangeResults = (h, angle) => {
     res.right.succeed = succeed
     res.right.rejected = _.extend({}, h.right.rejected, rejected)
     res.right.failed = _.extend({}, h.right.failed, failed)
+    res.right.total = h.total
     return res
   } else {
     res.left = h.left
