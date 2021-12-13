@@ -16,6 +16,10 @@ body {
   margin:5px;
 }
 
+.grey {
+  color:grey;
+}
+
 input[type=text] {
   margin-right: 5px;
   margin-bottom: -4px;

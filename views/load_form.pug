@@ -4,7 +4,10 @@ html
       include ./style.css
     title= "Selecting file"
     h1 Client: #{clientName}
-    h2= "Select cvs file on you drive:"
+    h2
+      | Select cvs file on you drive:
+      br
+      |(file must have field 'url' among headers)
   form(action='/load_file', method='POST' enctype="multipart/form-data")
     input(class='clientId' name='clientId' value=clientId)
     input(id="fileupload" name="myfile" type="file")

@@ -17,6 +17,19 @@ html
         textarea(id='drSettings' name='drSettings' cols=40 rows=10) #{drSettings}
         div Blacklist
         textarea(id='blackList' name='blackList' cols=40 rows=10) #{blackList}
+      div(class='col grey')
+        br
+        span DR settings must be in format:
+        br
+        span Domain Rating = (min Traffic), e.g.:
+        br
+        span 20=1500
+        br
+        span 30=2000
+        br
+        span 40=4000
+        br
+        span 50=6500
     div
     a(href="/") Cancel 
     input(type='submit', value='Submit')
