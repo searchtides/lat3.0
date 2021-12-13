@@ -303,6 +303,8 @@ async function updateTask (clientId, sampleFile) {
       const task = { ...{ clientId }, ...clientsMap[clientId], ...{ domains } }
       await fs.writeFile('db/task.json', JSON.stringify(task))
       return { err: null }
+    } else {
+      return {err: 'bad file format'}
     }
   } catch (err) {
     return { err }
