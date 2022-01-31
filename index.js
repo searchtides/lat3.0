@@ -1,4 +1,7 @@
 require('dotenv').config()
+const axios = require('axios')
+const { uploadFolder } = require('./modules/gdrive')
+const { getBacklinksReport } = require('./modules/ahref')
 const favicon = require('serve-favicon')
 const appService = require('./services/appService')
 const { keys } = require('./modules/utils')
@@ -12,8 +15,10 @@ const app = express()
 const port = 3000
 const WebSocketServer = require('ws').WebSocketServer
 const _ = require('underscore')
+const __ = require('lodash')
 const clientsMapPath = 'db/clients_map.json'
 const validFs = x => x.replace(/:|T/g, '-')
+const bodyParser = require('body-parser')
 
 const wss = new WebSocketServer({ port: 8080 })
 
@@ -60,6 +65,7 @@ app.use(fileUpload())
 app.set('view engine', 'pug')
 app.set('views', './views')
 app.use(favicon('favicon.png'))
+app.use(bodyParser.json())
 
 app.get('/', async (req, res) => {
   const clientsList = await appService.getClients()
@@ -69,6 +75,29 @@ app.get('/', async (req, res) => {
   } else {
     res.redirect('/add_client')
   }
+})
+
+app.post('/bcc', async (req, res) => {
+  let domains = req.body.urls
+  const folderId = process.env.UPLOAD_FOLDER_ID
+  res.send('ok')
+  const domainsMap = __.zipObject(domains, _.range(0, domains.length).map(i => _.extend({}, { idx: i })))
+  const folder = new Date().toISOString().split('.')[0]
+  const downloadPath = path.join(__dirname, 'downloads', folder)
+  await fsa.mkdir(downloadPath, { recurcive: true })
+  while (domains.length) {
+    console.log(domains.length)
+    const res = await getBacklinksReport(domains, downloadPath, console.log)
+    const ps = _.zip(domains, res)
+    ps.forEach(function (p) {
+      domainsMap[p[0]].filename = p[1].right ? p[1].right : ''
+    })
+    domains = ps.filter(p => p[1].right === undefined)
+  }
+  await fsa.writeFile(path.join(downloadPath, 'fileMap.json'), JSON.stringify(domainsMap))
+  const containerFolderId = await uploadFolder(downloadPath, folderId)
+  const url = process.env.ENDPOINT + '?id=' + containerFolderId
+  await axios.get(url)
 })
 
 app.get('/downlog', async (req, res) => {

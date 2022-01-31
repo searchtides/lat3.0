@@ -4,9 +4,12 @@ const puppeteer = require('puppeteer')
 const _ = require('lodash')
 const { serial } = require('./utils')
 const queryUrl = 'https://app.ahrefs.com/site-explorer/overview/v2/subdomains/live?target='
+const backlinkUrl = 'https://app.ahrefs.com/v2-site-explorer/backlinks/prefix'
 const TIMEOUT = 60000
 const { toNum, getDmap, getCoef } = require('./get')
 const cookiesFilename = path.join(__dirname, '../operational/cookies.json')
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // ::DrMap->({Dr, Tr} -> Bool)
 const metricsPass = (drMap) => {
@@ -141,5 +144,66 @@ const processInBatches = (domains, batchSize = 20, logger) => {
     })
 }
 
+async function downloadBLReport (page, domain, downloadPath, logger) {
+  const url = backlinkUrl + '?target=' + encodeURIComponent(domain)
+  await page.goto(url, { waitUntil: 'networkidle2', timeout: TIMEOUT })
+  await page.waitForXPath("//button[contains(., 'Export')]")
+  const [button] = await page.$x("//button[contains(., 'Export')]")
+  await button.click()
+  await page.waitForSelector('div.ReactModalPortal', { visible: true, timeout: TIMEOUT })
+  await page.waitForXPath("//label[contains(., 'All')]")
+  let rows, value, label
+  do {
+    label = (await page.$x("//label[contains(., 'All')]"))[0]
+    value = await label.evaluate(el => el.textContent)
+    rows = Number(value.replace(/\D+/g, ''))
+    logger({ type: 'rows', data: rows })
+    if (rows === 0) { await delay(1000) }
+  } while (rows === 0) await label.click()
+  const [, second] = await page.$x("//button[contains(., 'Export')]")
+  await page._client.send('Page.setDownloadBehavior', { behavior: 'allow', downloadPath })
+  const filesBefore = await fs.readdir(downloadPath)
+  await second.click()
+  await page.waitForResponse(response => response.status() === 200)
+  let attempt = 10
+  let diff = 0
+  let allRows = false
+  let filename
+  do {
+    await delay(1000)
+    const filesAfter = await fs.readdir(downloadPath)
+    diff = _.difference(filesAfter, filesBefore)
+    logger({ type: 'attempt', data: attempt })
+    if (diff.length > 0) {
+      filename = diff[0]
+      const fullname = path.join(downloadPath, filename)
+      const txt = await fs.readFile(fullname, 'utf16le')
+      const lines = txt.split('\n')
+      allRows = (lines - 2) === rows
+    }
+    attempt--
+    const proceed = (diff === 0 && attempt > 0 && !allRows)
+    if (!proceed) break
+  } while (true)
+
+  if (attempt) {
+    return Promise.resolve({ right: filename })
+  } else {
+    return Promise.resolve({ left: true })
+  }
+}
+
+async function getBacklinksReport (domains, downloadPath, logger) {
+  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
+  const cookies = await getCookies(browser, logger)
+  const page = await browser.newPage()
+  await page.setCookie(...cookies)
+  const funcs = domains.map(domain => () => downloadBLReport(page, domain, downloadPath, logger))
+  const xs = await serial(funcs, logger)
+  await browser.close()
+  return Promise.resolve(_.flatten(xs))
+}
+
 exports.processInBatches = processInBatches
 exports.metricsPass = metricsPass
+exports.getBacklinksReport = getBacklinksReport
