@@ -1,3 +1,4 @@
+const TRIES_FOR_ROWS = 30
 const fs = require('fs').promises
 const path = require('path')
 const puppeteer = require('puppeteer')
@@ -152,14 +153,17 @@ async function downloadBLReport (page, domain, downloadPath, logger) {
   await button.click()
   await page.waitForSelector('div.ReactModalPortal', { visible: true, timeout: TIMEOUT })
   await page.waitForXPath("//label[contains(., 'All')]")
-  let rows, value, label
+  let rows; let value; let label; let tries = 0
   do {
+    tries++
     label = (await page.$x("//label[contains(., 'All')]"))[0]
     value = await label.evaluate(el => el.textContent)
     rows = Number(value.replace(/\D+/g, ''))
     logger({ type: 'rows', data: rows })
     if (rows === 0) { await delay(1000) }
-  } while (rows === 0) await label.click()
+    if (tries > TRIES_FOR_ROWS) { logger({ type: 'domain', data: domain }) }
+  } while (rows === 0 && tries <= TRIES_FOR_ROWS)
+  await label.click()
   const [, second] = await page.$x("//button[contains(., 'Export')]")
   await page._client.send('Page.setDownloadBehavior', { behavior: 'allow', downloadPath })
   const filesBefore = await fs.readdir(downloadPath)
