@@ -11,8 +11,8 @@ async function getClient () {
 
 async function getOAuth2Client (credentials) {
   let token
-  const { clientSecret, clientId, redirectUris } = credentials.installed
-  const oAuth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUris[0])
+  const { client_secret, client_id, redirect_uris } = credentials.installed
+  const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
   let tokenExists = true
   try {
     token = await fsa.readFile(TOKEN_PATH, 'utf8')
