@@ -79,6 +79,7 @@ app.get('/', async (req, res) => {
 
 app.post('/bcc', async (req, res) => {
   let domains = req.body.urls
+  const callback = req.body.callback
   const folderId = process.env.UPLOAD_FOLDER_ID
   res.send('ok')
   const domainsMap = __.zipObject(domains, _.range(0, domains.length).map(i => _.extend({}, { idx: i })))
@@ -96,7 +97,7 @@ app.post('/bcc', async (req, res) => {
   }
   await fsa.writeFile(path.join(downloadPath, 'fileMap.json'), JSON.stringify(domainsMap))
   const containerFolderId = await uploadFolder(downloadPath, folderId)
-  const url = process.env.ENDPOINT + '?id=' + containerFolderId
+  const url = callback + '?id=' + containerFolderId
   await axios.get(url)
 })
 
