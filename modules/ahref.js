@@ -146,6 +146,11 @@ const processInBatches = (domains, batchSize = 20, logger) => {
 }
 
 async function downloadBLReport (page, domain, downloadPath, logger) {
+  await page.goto(queryUrl + encodeURIComponent(domain), { waitUntil: 'load', timeout: TIMEOUT })
+  await page.waitForSelector('#UrlRatingContainer', { visible: false, timeout: TIMEOUT })
+  const urlRating = await page.$eval('#UrlRatingContainer > span', (element) => { return element.innerHTML })
+  await page.waitForSelector('#DomainRatingContainer > span', { visible: false, timeout: TIMEOUT })
+  const domainRating = await page.$eval('#DomainRatingContainer > span', (element) => { return element.innerHTML })
   const url = backlinkUrl + '?target=' + encodeURIComponent(domain)
   await page.goto(url, { waitUntil: 'networkidle2', timeout: TIMEOUT })
   await page.waitForXPath("//button[contains(., 'Export')]")
@@ -153,7 +158,7 @@ async function downloadBLReport (page, domain, downloadPath, logger) {
   await button.click()
   await page.waitForSelector('div.ReactModalPortal', { visible: true, timeout: TIMEOUT })
   await page.waitForXPath("//label[contains(., 'All')]")
-  let rows, value, label, tries = 0
+  let rows; let value; let label; let tries = 0
   do {
     tries++
     label = (await page.$x("//label[contains(., 'All')]"))[0]
@@ -161,7 +166,7 @@ async function downloadBLReport (page, domain, downloadPath, logger) {
     rows = Number(value.replace(/\D+/g, ''))
     logger({ type: 'rows', data: rows })
     if (rows === 0) { await delay(1000) }
-    if (tries > TRIES_FOR_ROWS) {logger({type:'domain', data: domain})}
+    if (tries > TRIES_FOR_ROWS) { logger({ type: 'domain', data: domain }) }
   } while (rows === 0 && tries <= TRIES_FOR_ROWS)
   await label.click()
   const [, second] = await page.$x("//button[contains(., 'Export')]")
@@ -191,7 +196,7 @@ async function downloadBLReport (page, domain, downloadPath, logger) {
   } while (true)
 
   if (attempt) {
-    return Promise.resolve({ right: filename })
+    return Promise.resolve({ right: { filename, urlRating, domainRating } })
   } else {
     return Promise.resolve({ left: true })
   }
