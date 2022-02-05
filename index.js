@@ -91,7 +91,7 @@ app.post('/bcc', async (req, res) => {
     const res = await getBacklinksReport(domains, downloadPath, console.log)
     const ps = _.zip(domains, res)
     ps.forEach(function (p) {
-      domainsMap[p[0]].filename = p[1].right ? p[1].right : ''
+      domainsMap[p[0]] = _.extend({}, domainsMap[p[0]], p[1].right ? p[1].right : '')
     })
     domains = ps.filter(p => p[1].right === undefined)
   }
