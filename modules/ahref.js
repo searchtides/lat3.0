@@ -160,8 +160,8 @@ async function downloadBLReport (page, domain, downloadPath, logger) {
   const domainRating = await page.$eval('#DomainRatingContainer > span', (element) => { return element.innerHTML })
   const url = backlinkUrl + '?target=' + encodeURIComponent(domain)
   await page.goto(url, { waitUntil: 'networkidle2', timeout: TIMEOUT })
-  await page.waitForXPath("//div[contains(text(), 'groups of links')]")
-  const numberOfLinksLabel = (await page.$x("//div[contains(text(), 'groups of links')]"))[0]
+  await page.waitForXPath("//div[contains(text(), 'group of links') or contains(text(), 'groups of links')]")
+  const numberOfLinksLabel = (await page.$x("//div[contains(text(), 'group of links') or contains(text(), 'groups of links')]"))[0]
   const nValue = await numberOfLinksLabel.evaluate(el => el.textContent)
   const reportSize = Number(nValue.replace(/\D+/g, ''))
   logger({ type: 'report size: ', data: reportSize })

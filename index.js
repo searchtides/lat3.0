@@ -78,7 +78,7 @@ app.get('/', async (req, res) => {
 })
 
 app.post('/bcc', async (req, res) => {
-  let domains = req.body.urls
+  let domains = req.body.urls.map(d => d.trim().replace(/\/$/, ''))
   const callback = req.body.callback
   const folderId = process.env.UPLOAD_FOLDER_ID
   res.send('ok')
