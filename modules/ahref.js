@@ -160,6 +160,11 @@ async function downloadBLReport (page, domain, downloadPath, logger) {
   const domainRating = await page.$eval('#DomainRatingContainer > span', (element) => { return element.innerHTML })
   const url = backlinkUrl + '?target=' + encodeURIComponent(domain)
   await page.goto(url, { waitUntil: 'networkidle2', timeout: TIMEOUT })
+  await page.waitForXPath("//div[contains(text(), 'groups of links')]")
+  const numberOfLinksLabel = (await page.$x("//div[contains(text(), 'groups of links')]"))[0]
+  const nValue = await numberOfLinksLabel.evaluate(el => el.textContent)
+  const reportSize = Number(nValue.replace(/\D+/g, ''))
+  logger({ type: 'report size: ', data: reportSize })
   await page.waitForXPath("//button[contains(., 'Export')]")
   const [button] = await page.$x("//button[contains(., 'Export')]")
   await button.click()
@@ -171,10 +176,13 @@ async function downloadBLReport (page, domain, downloadPath, logger) {
     label = (await page.$x("//label[contains(., 'All')]"))[0]
     value = await label.evaluate(el => el.textContent)
     rows = Number(value.replace(/\D+/g, ''))
-    logger({ type: 'rows', data: rows })
+    logger({ type: 'rows in popup window', data: rows })
     if (rows === 0) { await delay(1000) }
     if (tries > TRIES_FOR_ROWS) { logger({ type: 'domain', data: domain }) }
-  } while (rows === 0 && tries <= TRIES_FOR_ROWS)
+  } while (rows !== reportSize && tries <= TRIES_FOR_ROWS)
+  if (rows !== reportSize && tries === TRIES_FOR_ROWS) {
+    return Promise.resolve({ left: true })
+  }
   await label.click()
   const [, second] = await page.$x("//button[contains(., 'Export')]")
   await page._client.send('Page.setDownloadBehavior', { behavior: 'allow', downloadPath })
