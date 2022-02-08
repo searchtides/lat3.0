@@ -93,7 +93,7 @@ app.post('/bcc', async (req, res) => {
     ps.forEach(function (p) {
       domainsMap[p[0]] = _.extend({}, domainsMap[p[0]], p[1].right ? p[1].right : '')
     })
-    domains = ps.filter(p => p[1].right === undefined).map(p=>p[0])
+    domains = ps.filter(p => p[1].right === undefined).map(p => p[0])
   }
   await fsa.writeFile(path.join(downloadPath, 'fileMap.json'), JSON.stringify(domainsMap))
   const containerFolderId = await uploadFolder(downloadPath, folderId)
