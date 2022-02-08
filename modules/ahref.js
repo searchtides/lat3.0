@@ -16,12 +16,19 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const metricsPass = (drMap) => {
   const drs = _.keys(drMap).map(x => Number(x)).sort()
   if (drs.length === 0) return () => true
-  const drMin = drs[0]
-  const drMax = drs[drs.length - 1]
-  const minTraffic = dr => drMap[drs[_.findIndex(drs, x => x >= dr)]]
-  return ({ dr, tr }) => {
-    if (dr < drMin || dr > drMax) return false
-    return tr >= minTraffic(dr)
+  if (drs.length === 1) {
+    return ({ dr, tr }) => {
+      if (dr < drs[0]) return false
+      return tr >= drMap[drs[0]]
+    }
+  } else {
+    const drMin = drs[0]
+    const drMax = drs[drs.length - 1]
+    const minTraffic = dr => drMap[drs[_.findIndex(drs, x => x >= dr)]]
+    return ({ dr, tr }) => {
+      if (dr < drMin || dr > drMax) return false
+      return tr >= minTraffic(dr)
+    }
   }
 }
 
