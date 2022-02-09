@@ -164,7 +164,6 @@ async function downloadBLReport (page, domain, downloadPath, logger) {
   const numberOfLinksLabel = (await page.$x("//div[contains(text(), 'group of links') or contains(text(), 'groups of links')]"))[0]
   const nValue = await numberOfLinksLabel.evaluate(el => el.textContent)
   const reportSize = Number(nValue.replace(/\D+/g, ''))
-  logger({ type: 'report size: ', data: reportSize })
   await page.waitForXPath("//button[contains(., 'Export')]")
   const [button] = await page.$x("//button[contains(., 'Export')]")
   await button.click()
@@ -176,7 +175,6 @@ async function downloadBLReport (page, domain, downloadPath, logger) {
     label = (await page.$x("//label[contains(., 'All')]"))[0]
     value = await label.evaluate(el => el.textContent)
     rows = Number(value.replace(/\D+/g, ''))
-    logger({ type: 'rows in popup window', data: rows })
     if (rows === 0) { await delay(1000) }
     if (tries > TRIES_FOR_ROWS) { logger({ type: 'domain', data: domain }) }
   } while (rows !== reportSize && tries <= TRIES_FOR_ROWS)
@@ -197,9 +195,10 @@ async function downloadBLReport (page, domain, downloadPath, logger) {
     await delay(1000)
     const filesAfter = await fs.readdir(downloadPath)
     diff = _.difference(filesAfter, filesBefore)
-    logger({ type: 'attempt', data: attempt })
+    //logger({ type: 'attempt', data: attempt })
     if (diff.length > 0) {
       filename = diff[0]
+      if (filename === undefined) console.log(domain)
       const fullname = path.join(downloadPath, filename)
       const txt = await fs.readFile(fullname, 'utf16le')
       const lines = txt.split('\n')
@@ -211,7 +210,9 @@ async function downloadBLReport (page, domain, downloadPath, logger) {
   } while (true)
 
   if (attempt) {
-    return Promise.resolve({ right: { filename, urlRating, domainRating } })
+    const bundle = { filename, urlRating, domainRating }
+    if (filename === undefined) console.log(domain)
+    return Promise.resolve({ right: bundle })
   } else {
     return Promise.resolve({ left: true })
   }
