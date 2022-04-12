@@ -4,8 +4,8 @@ const path = require('path')
 const puppeteer = require('puppeteer')
 const _ = require('lodash')
 const { serial } = require('./utils')
-const queryUrl = 'https://app.ahrefs.com/site-explorer/overview/v2/subdomains/live?target='
-const backlinkUrl = 'https://app.ahrefs.com/v2-site-explorer/backlinks/prefix'
+const queryUrl = 'https://app.ahrefs.com/site-explorer/overview/v2/exact/live?target='
+const backlinkUrl = 'https://app.ahrefs.com/v2-site-explorer/backlinks/exact'
 const TIMEOUT = 60000
 const { toNum, getDmap, getCoef } = require('./get')
 const cookiesFilename = path.join(__dirname, '../operational/cookies.json')
@@ -153,12 +153,13 @@ const processInBatches = (domains, batchSize = 20, logger) => {
 }
 
 async function downloadBLReport (page, domain, downloadPath, logger) {
-  await page.goto(queryUrl + encodeURIComponent(domain), { waitUntil: 'load', timeout: TIMEOUT })
+  const normalizedDomain = encodeURIComponent(domain.replace(/https?:\/\//i, ''))
+  await page.goto(queryUrl + normalizedDomain, { waitUntil: 'load', timeout: TIMEOUT })
   await page.waitForSelector('#UrlRatingContainer', { visible: false, timeout: TIMEOUT })
   const urlRating = await page.$eval('#UrlRatingContainer > span', (element) => { return element.innerHTML })
   await page.waitForSelector('#DomainRatingContainer > span', { visible: false, timeout: TIMEOUT })
   const domainRating = await page.$eval('#DomainRatingContainer > span', (element) => { return element.innerHTML })
-  const url = backlinkUrl + '?target=' + encodeURIComponent(domain)
+  const url = backlinkUrl + '?target=' + normalizedDomain
   await page.goto(url, { waitUntil: 'networkidle2', timeout: TIMEOUT })
   await page.waitForXPath("//div[contains(text(), 'group of links') or contains(text(), 'groups of links')]")
   const numberOfLinksLabel = (await page.$x("//div[contains(text(), 'group of links') or contains(text(), 'groups of links')]"))[0]
