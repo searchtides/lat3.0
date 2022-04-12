@@ -88,6 +88,9 @@ app.post('/bcc', async (req, res) => {
   await fsa.mkdir(downloadPath, { recurcive: true })
   while (domains.length) {
     console.log(domains.length)
+    if (domains.length <=3) {
+      console.log(domains)
+    }
     const res = await getBacklinksReport(domains, downloadPath, console.log)
     const ps = _.zip(domains, res)
     ps.forEach(function (p) {
@@ -97,7 +100,7 @@ app.post('/bcc', async (req, res) => {
   }
   await fsa.writeFile(path.join(downloadPath, 'fileMap.json'), JSON.stringify(domainsMap))
   const containerFolderId = await uploadFolder(downloadPath, folderId)
-  const url = callback + '?id=' + containerFolderId
+  const url = callback + '?id=' + containerFolderId + '&auto=1'
   const response = await axios.get(url)
   console.log(response.data)
 })
