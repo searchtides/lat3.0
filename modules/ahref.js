@@ -205,7 +205,7 @@ async function downloadBLReport (page, domain, downloadPath, logger) {
       allRows = (lines - 2) === rows
     }
     attempt--
-    const proceed = (diff === 0 && attempt > 0 && !allRows)
+    const proceed = (diff.length === 0 && attempt > 0 && !allRows)
     if (!proceed) break
   } while (true)
 
