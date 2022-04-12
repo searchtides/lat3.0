@@ -155,8 +155,13 @@ const processInBatches = (domains, batchSize = 20, logger) => {
 async function downloadBLReport (page, domain, downloadPath, logger) {
   const normalizedDomain = encodeURIComponent(domain.replace(/https?:\/\//i, ''))
   await page.goto(queryUrl + normalizedDomain, { waitUntil: 'load', timeout: TIMEOUT })
+  let urlRating
   await page.waitForSelector('#UrlRatingContainer', { visible: false, timeout: TIMEOUT })
-  const urlRating = await page.$eval('#UrlRatingContainer > span', (element) => { return element.innerHTML })
+  try {
+    urlRating = await page.$eval('#UrlRatingContainer > span', (element) => { return element.innerHTML })
+  } catch (e) {
+    urlRating = 101
+  }
   await page.waitForSelector('#DomainRatingContainer > span', { visible: false, timeout: TIMEOUT })
   const domainRating = await page.$eval('#DomainRatingContainer > span', (element) => { return element.innerHTML })
   const url = backlinkUrl + '?target=' + normalizedDomain
