@@ -1,4 +1,5 @@
 require('dotenv').config()
+const extractDomain = require('extract-domain')
 const axios = require('axios')
 const { uploadFolder } = require('./modules/gdrive')
 const { getBacklinksReport } = require('./modules/ahref')
@@ -21,6 +22,15 @@ const validFs = x => x.replace(/:|T/g, '-')
 const bodyParser = require('body-parser')
 
 const wss = new WebSocketServer({ port: 8080 })
+
+let domainsCountMap
+try {
+  const txt = fs.readFileSync('db/domains_map.json', 'utf8')
+  domainsCountMap = JSON.parse(txt)
+} catch (e) {
+  domainsCountMap = {}
+  fs.writeFileSync('db/domains_map.json', JSON.stringify(domainsCountMap))
+}
 
 let t1
 const js = (x) => JSON.stringify(x)
@@ -75,6 +85,24 @@ app.get('/', async (req, res) => {
   } else {
     res.redirect('/add_client')
   }
+})
+
+app.post('/update_domains_map', async (req, res) => {
+  domainsCountMap = req.body.domainsMap
+  try {
+    await fsa.writeFile('db/domains_map.json', JSON.stringify(domainsCountMap))
+    res.send('ok')
+  } catch (e) {
+    res.send('error')
+  }
+})
+
+app.get('/check', async (req, res) => {
+  const { url } = req.query
+  const domain = extractDomain(url, { tld: true })
+  const n = domainsCountMap[domain] ? domainsCountMap[domain] : 0
+  res.setHeader('Content-Type', 'application/json')
+  res.end(JSON.stringify({ n }))
 })
 
 app.post('/bcc', async (req, res) => {
