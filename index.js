@@ -116,7 +116,7 @@ app.post('/bcc', async (req, res) => {
   await fsa.mkdir(downloadPath, { recurcive: true })
   while (domains.length) {
     console.log(domains.length)
-    if (domains.length <=3) {
+    if (domains.length <= 3) {
       console.log(domains)
     }
     const res = await getBacklinksReport(domains, downloadPath, console.log)
@@ -124,7 +124,7 @@ app.post('/bcc', async (req, res) => {
     ps.forEach(function (p) {
       domainsMap[p[0]] = _.extend({}, domainsMap[p[0]], p[1].right ? p[1].right : '')
     })
-    domains = ps.filter(p => p[1].right === undefined || p[1].right.filename == undefined).map(p => p[0])
+    domains = ps.filter(p => p[1].right === undefined || p[1].right.filename === undefined).map(p => p[0])
   }
   await fsa.writeFile(path.join(downloadPath, 'fileMap.json'), JSON.stringify(domainsMap))
   const containerFolderId = await uploadFolder(downloadPath, folderId)
