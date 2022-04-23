@@ -100,9 +100,9 @@ app.post('/update_domains_map', async (req, res) => {
 app.get('/check', async (req, res) => {
   const { url } = req.query
   const domain = extractDomain(url, { tld: true })
-  const n = domainsCountMap[domain] ? domainsCountMap[domain] : 0
+  const cmap = domainsCountMap[domain] ? domainsCountMap[domain] : {}
   res.setHeader('Content-Type', 'application/json')
-  res.end(JSON.stringify({ n }))
+  res.end(JSON.stringify({ cmap }))
 })
 
 app.post('/bcc', async (req, res) => {
