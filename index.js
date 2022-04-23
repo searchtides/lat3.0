@@ -97,6 +97,13 @@ app.post('/update_domains_map', async (req, res) => {
   }
 })
 
+const concat = (a, b) => a.concat(b)
+app.get('/clients', async (req, res) => {
+  const clients = _.keys(domainsCountMap).map(domain => _.keys(domainsCountMap[domain])).reduce(concat)
+  res.setHeader('Content-Type', 'application/json')
+  res.end(JSON.stringify({ clients: _.unique(clients) }))
+})
+
 app.get('/check', async (req, res) => {
   const { url } = req.query
   const domain = extractDomain(url, { tld: true })
