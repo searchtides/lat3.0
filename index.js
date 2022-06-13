@@ -87,6 +87,14 @@ app.get('/', async (req, res) => {
   }
 })
 
+app.post('/status', async (req, res) => {
+  const rows = req.body.rows
+  const callback = req.body.callback
+  const result = await checkStatus(rows)
+  const url = callback + '?cmd=status'
+  const response = await axios.post(url)
+})
+
 app.post('/update_domains_map', async (req, res) => {
   domainsCountMap = req.body.domainsMap
   try {
