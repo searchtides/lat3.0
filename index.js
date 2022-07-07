@@ -97,7 +97,15 @@ app.post('/update_domains_map', async (req, res) => {
   }
 })
 
+app.post('/btf', async (req, res) => {
+  const payload = req.body
+  const url = process.env.BTF_ENDPOINT
+  const response = await axios({ url, method: 'post', data: payload })
+  res.send(response.data)
+})
+
 const concat = (a, b) => a.concat(b)
+
 app.get('/clients', async (req, res) => {
   const clients = _.keys(domainsCountMap).map(domain => _.keys(domainsCountMap[domain])).reduce(concat)
   res.setHeader('Content-Type', 'application/json')
