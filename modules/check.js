@@ -33,7 +33,7 @@ const statusFromData = (h, data) => {
 }
 
 async function status (h, i) {
-  const options = { headers: { 'User-Agent': userAgent }, timeout: 20000 }
+  const options = { headers: { 'User-Agent': userAgent }, timeout: TIMEOUT }
   return await axios.get(h.url, options)
     .then(res => {
       return statusFromData(h, res.data)
@@ -50,6 +50,9 @@ async function status (h, i) {
         }
         return statusText || status
       } else {
+        if (e.code === undefined) {
+          console.log(e)
+        }
         return e.code
       }
     })
