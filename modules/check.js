@@ -26,7 +26,7 @@ const statusFromData = (h, data) => {
   if (present) {
     status = 'LIVE'
   } else {
-    const linkPresent = is.linkPresent({ html, anchor: h.anchor, link: h.targetLink })
+    const linkPresent = is.linkPresent({ html, anchor: h.anchor, link: h.target_link })
     status = linkPresent ? 'LIVE, BUT CORRUPTED ANCHOR' : 'NOT LIVE'
   }
   return status
