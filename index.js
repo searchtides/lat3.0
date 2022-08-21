@@ -5,6 +5,7 @@ const { uploadFolder } = require('./modules/gdrive')
 const { getBacklinksReport } = require('./modules/ahref')
 const favicon = require('serve-favicon')
 const appService = require('./services/appService')
+const checker = require('./services/checker')
 const { keys } = require('./modules/utils')
 const { rearrangeResults, translateFailedToVh, translateRejectedToVh, translateSucceedToVh, prettyView } = appService
 const path = require('path')
@@ -85,6 +86,17 @@ app.get('/', async (req, res) => {
   } else {
     res.redirect('/add_client')
   }
+})
+
+app.post('/start_cheking', async (req, res) => {
+  const rows = req.body.rows
+  const callback = req.body.callback
+  res.send('checking started')
+  const result = await checker.checkStatus(rows)
+  fsa.writeFile('/results/links_statuses.json', JSON.stringify(result))
+  const url = callback + '?cmd=checkingFinished'
+  const response = await axios.post(url)
+  console.log(response)
 })
 
 app.post('/update_domains_map', async (req, res) => {
