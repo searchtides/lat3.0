@@ -76,7 +76,7 @@ app.use(fileUpload())
 app.set('view engine', 'pug')
 app.set('views', './views')
 app.use(favicon('favicon.png'))
-app.use(bodyParser.json())
+app.use(bodyParser.json({limit: '20mb'}))
 
 app.get('/', async (req, res) => {
   const clientsList = await appService.getClients()
