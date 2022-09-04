@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const escapeStringRegexp = require('regex-escape')
 const axios = require('axios')
 const TIMEOUT = 60000
 const userAgent = 'Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Mobile Safari/537.36.'
@@ -131,7 +132,7 @@ is.present = function (a) {
   if (valuedTags.length === 0) return false
   // here we have links only with anchor text
   const xs = valuedTags.map(extract.linksAndAnchors)
-  const linkTemplate = normalize.link(a.link)
+  const linkTemplate = escapeStringRegexp(normalize.link(a.link))
   const regex = new RegExp(linkTemplate)
   return xs.some(function (x) {
     const siteLink = normalize.link(x.link)
