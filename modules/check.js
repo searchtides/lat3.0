@@ -14,8 +14,10 @@ async function statusUnderCaptcha (browser, h) {
   }
   if (success) {
     const data = await page.content()
+    await page.close()
     return statusFromData(h, data)
   }
+  await page.close()
   return 'UNABLE TO CRAWL'
 }
 
