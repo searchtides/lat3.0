@@ -51,6 +51,9 @@ async function status (h, i) {
         if (status === 403 && e.response.headers.server === 'cloudflare') {
           return 'CLOUDFLARE CAPTCHA'
         }
+        if (status === 404) {
+          return 'NOT FOUND'
+        }
         return statusText || status
       } else {
         if (e.code === undefined) {
