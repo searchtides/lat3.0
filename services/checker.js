@@ -25,7 +25,7 @@ const genFns = chunks => {
 }
 
 async function checkStatus (rows) {
-  let fns
+  let fns, status
   const chunks = _.chunk(rows, 1000)
   fns = genFns(chunks)
   const xs = await runSeq(fns)
@@ -38,7 +38,11 @@ async function checkStatus (rows) {
   if (cs.length) {
     const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
     fns = cs.map(row => async () => {
-      const status = await check.statusUnderCaptcha(browser, row)
+      try {
+        status = await check.statusUnderCaptcha(browser, row)
+      } catch(e) {
+        status = 'UNABLE TO CRAWL'
+      }
       return { ...row, status }
     })
     ncs = await runSeq(fns)
