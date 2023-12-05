@@ -89,12 +89,15 @@ app.get('/', async (req, res) => {
 })
 
 app.post('/start_cheking', async (req, res) => {
+  let url
   const rows = req.body.rows
   const callback = req.body.callback
+  const proceed = req.body.proceed
   res.send('checking started')
   const result = await checker.checkStatus(rows)
   fsa.writeFile('/results/links_statuses.json', JSON.stringify(result))
-  const url = callback + '?cmd=checkingFinished'
+  url = callback + '?cmd=checkingFinished'
+  if (proceed) url += '&proceed=1'
   const response = await axios.post(url)
   console.log(response)
 })
