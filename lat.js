@@ -88,7 +88,7 @@ app.get('/', async (req, res) => {
   }
 })
 
-app.post('/start_cheking', async (req, res) => {
+app.post('/start_checking', async (req, res) => {
   let url
   const rows = req.body.rows
   const callback = req.body.callback
