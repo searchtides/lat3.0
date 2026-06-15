@@ -24,7 +24,7 @@ async function statusUnderCaptcha (browser, h) {
 const statusFromData = (h, data) => {
   let status
   const NEWLINE = '\\n'
-  const html = data.replace(new RegExp(NEWLINE, 'g'), ' ')
+  const html = (typeof data === 'string' ? data : JSON.stringify(data)).replace(new RegExp(NEWLINE, 'g'), ' ')
   const present = is.present({ html, anchor: h.anchor, link: h.target_link })
   if (present) {
     status = 'LIVE'

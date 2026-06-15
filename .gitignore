@@ -4,6 +4,9 @@ temp/
 !.gitignore
 node_modules/
 test*
+!tests/
+tests/*
+!tests/test_theguycornernyc_check.js
 /uploads/*.*
 !/uploads/.gitkeep
 /downloads/*
