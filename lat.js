@@ -21,6 +21,7 @@ const __ = require('lodash')
 const clientsMapPath = 'db/clients_map.json'
 const validFs = x => x.replace(/:|T/g, '-')
 const bodyParser = require('body-parser')
+const callbackPostConfig = { maxBodyLength: Infinity, maxContentLength: Infinity }
 
 const wss = new WebSocketServer({ port: 8080 })
 
@@ -76,7 +77,7 @@ app.use(fileUpload())
 app.set('view engine', 'pug')
 app.set('views', './views')
 app.use(favicon('favicon.png'))
-app.use(bodyParser.json({limit: '20mb'}))
+app.use(bodyParser.json({ limit: '20mb' }))
 
 app.get('/', async (req, res) => {
   const clientsList = await appService.getClients()
@@ -97,7 +98,7 @@ app.post('/start_checking', async (req, res) => {
   const result = await checker.checkStatus(rows)
   url = callback + '?cmd=checkingFinished'
   if (proceed) url += '&proceed=1'
-  await axios.post(url, { payload: result })
+  await axios.post(url, { payload: result }, callbackPostConfig)
 })
 
 app.post('/update_domains_map', async (req, res) => {
