@@ -22,6 +22,36 @@ const clientsMapPath = 'db/clients_map.json'
 const validFs = x => x.replace(/:|T/g, '-')
 const bodyParser = require('body-parser')
 const callbackPostConfig = { maxBodyLength: Infinity, maxContentLength: Infinity }
+const initialCheckingStatus = () => ({
+  running: false,
+  stage: 'idle',
+  total: 0,
+  checked: 0,
+  captchaTotal: 0,
+  captchaChecked: 0,
+  startedAt: null,
+  finishedAt: null,
+  lastError: null,
+  statusCounts: {},
+  captchaStatusCounts: {}
+})
+
+let checkingStatus = initialCheckingStatus()
+
+const updateCheckingStatus = event => {
+  if (event.total !== undefined) checkingStatus.total = event.total
+  if (event.stage) checkingStatus.stage = event.stage
+  if (event.checked) checkingStatus.checked += event.checked
+  if (event.captchaTotal !== undefined) checkingStatus.captchaTotal = event.captchaTotal
+  if (event.captchaChecked) checkingStatus.captchaChecked += event.captchaChecked
+  if (event.status && event.stage === 'captcha') {
+    if (checkingStatus.captchaStatusCounts[event.status] === undefined) checkingStatus.captchaStatusCounts[event.status] = 0
+    checkingStatus.captchaStatusCounts[event.status] += 1
+  } else if (event.status) {
+    if (checkingStatus.statusCounts[event.status] === undefined) checkingStatus.statusCounts[event.status] = 0
+    checkingStatus.statusCounts[event.status] += 1
+  }
+}
 
 const wss = new WebSocketServer({ port: 8080 })
 
@@ -94,11 +124,40 @@ app.post('/start_checking', async (req, res) => {
   const rows = req.body.rows
   const callback = req.body.callback
   const proceed = req.body.proceed
+  checkingStatus = {
+    ...initialCheckingStatus(),
+    running: true,
+    stage: 'checking',
+    total: rows.length,
+    startedAt: new Date().toISOString()
+  }
   res.send('checking started')
-  const result = await checker.checkStatus(rows)
-  url = callback + '?cmd=checkingFinished'
-  if (proceed) url += '&proceed=1'
-  await axios.post(url, { payload: result }, callbackPostConfig)
+  try {
+    const result = await checker.checkStatus(rows, updateCheckingStatus)
+    url = callback + '?cmd=checkingFinished'
+    if (proceed) url += '&proceed=1'
+    checkingStatus.stage = 'callback'
+    await axios.post(url, { payload: result }, callbackPostConfig)
+    checkingStatus.running = false
+    checkingStatus.stage = 'finished'
+    checkingStatus.finishedAt = new Date().toISOString()
+  } catch (e) {
+    checkingStatus.running = false
+    checkingStatus.stage = 'failed'
+    checkingStatus.finishedAt = new Date().toISOString()
+    checkingStatus.lastError = {
+      name: e && e.name,
+      code: e && e.code,
+      message: e && e.message,
+      stack: e && e.stack
+    }
+    console.error(JSON.stringify({ type: 'start_checking.error', error: checkingStatus.lastError }))
+  }
+})
+
+app.get('/checking_status', (req, res) => {
+  res.setHeader('Content-Type', 'application/json')
+  res.end(JSON.stringify(checkingStatus))
 })
 
 app.post('/update_domains_map', async (req, res) => {
