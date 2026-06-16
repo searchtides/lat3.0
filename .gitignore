@@ -6,6 +6,7 @@ node_modules/
 test*
 !tests/
 tests/*
+!tests/test_numeric_anchor_check.js
 !tests/test_theguycornernyc_check.js
 /uploads/*.*
 !/uploads/.gitkeep

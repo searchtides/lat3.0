@@ -4,6 +4,21 @@ const axios = require('axios')
 const TIMEOUT = 60000
 const userAgent = 'Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Mobile Safari/537.36.'
 
+const logStatusError = (h, i, e) => {
+  console.error(JSON.stringify({
+    type: 'check.status.error',
+    index: i,
+    url: h && h.url,
+    target_link: h && h.target_link,
+    anchor: h && h.anchor,
+    anchorType: h && typeof h.anchor,
+    errorName: e && e.name,
+    errorCode: e && e.code,
+    errorMessage: e && e.message,
+    stack: e && e.stack
+  }))
+}
+
 async function statusUnderCaptcha (browser, h) {
   const page = await browser.newPage()
   let success = true
@@ -57,7 +72,7 @@ async function status (h, i) {
         return statusText || status
       } else {
         if (e.code === undefined) {
-          console.log(e)
+          logStatusError(h, i, e)
         }
         return e.code
       }
@@ -71,7 +86,7 @@ normalize.html = function (x) {
   const qReg = new RegExp(qU, 'g')
   const q = String.fromCharCode(39)
   const nbsp = String.fromCharCode(160)
-  return unescape(_.unescape(x.trim()).toLowerCase())
+  return unescape(_.unescape(String(x || '').trim()).toLowerCase())
     .replace(qReg, q)
     .replace(nbsp, ' ')
     .replace(/  +/g, ' ')
@@ -81,7 +96,7 @@ normalize.html = function (x) {
 }
 
 normalize.link = function (s) {
-  return s.replace(/https?:\/\//, '').replace(/www\./, '').replace(/\/$/, '')
+  return String(s || '').replace(/https?:\/\//, '').replace(/www\./, '').replace(/\/$/, '')
 }
 
 const extract = {}
@@ -108,7 +123,7 @@ extract.linksAndAnchors = function (x) {
 
 // ::{:anchor :html} ->[ATag]
 extract.valuedTags = function (a) {
-  const p = normalize.html(a.anchor.toLowerCase())
+  const p = normalize.html(a.anchor)
   const aTags = extract.aTags(a.html)
   const valuedTags = aTags.filter(function (x) {
     const s = normalize.html(x)
@@ -147,3 +162,4 @@ is.present = function (a) {
 
 exports.status = status
 exports.statusUnderCaptcha = statusUnderCaptcha
+exports.statusFromData = statusFromData
