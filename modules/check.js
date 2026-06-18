@@ -21,19 +21,15 @@ const logStatusError = (h, i, e) => {
 
 async function statusUnderCaptcha (browser, h) {
   const page = await browser.newPage()
-  let success = true
   try {
     await page.goto(h.url, { waitUntil: 'networkidle2', timeout: TIMEOUT })
-  } catch (e) {
-    success = false
-  }
-  if (success) {
     const data = await page.content()
-    await page.close()
     return statusFromData(h, data)
+  } catch (e) {
+    return 'UNABLE TO CRAWL'
+  } finally {
+    await page.close()
   }
-  await page.close()
-  return 'UNABLE TO CRAWL'
 }
 
 const statusFromData = (h, data) => {
