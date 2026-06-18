@@ -160,6 +160,10 @@ app.get('/checking_status', (req, res) => {
   res.end(JSON.stringify(checkingStatus))
 })
 
+app.get('/checking_progress', (req, res) => {
+  res.render('checking_progress')
+})
+
 app.post('/update_domains_map', async (req, res) => {
   domainsCountMap = req.body.domainsMap
   try {

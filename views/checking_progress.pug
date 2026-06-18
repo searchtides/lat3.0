@@ -1,0 +1,139 @@
+html
+  head
+    style
+      include ./style.css
+    title= "Checking progress"
+  body
+    div(class='checkingProgress')
+      div(class='checkingHeader')
+        div
+          h1 Checking progress
+          div(id='subtitle' class='grey') Loading current status...
+        a(href='/') Home
+
+      div(class='progressGrid')
+        div(class='progressPanel')
+          div(class='panelTitle') Overall
+          div(class='progressMeta')
+            span(id='stageBadge' class='stageBadge') idle
+            span(id='overallNumbers') 0 / 0
+          div(class='wideProgressBar')
+            div(id='overallBar' class='wideProgressFill')
+          div(class='statGrid')
+            div
+              div(class='statLabel') Total
+              div(id='total' class='statValue') 0
+            div
+              div(class='statLabel') Checked
+              div(id='checked' class='statValue') 0
+            div
+              div(class='statLabel') Started
+              div(id='startedAt' class='statValue smallStat') -
+            div
+              div(class='statLabel') Finished
+              div(id='finishedAt' class='statValue smallStat') -
+
+        div(class='progressPanel')
+          div(class='panelTitle') Captcha
+          div(class='progressMeta')
+            span(id='captchaNumbers') 0 / 0
+          div(class='wideProgressBar')
+            div(id='captchaBar' class='wideProgressFill captchaFill')
+          div(class='statGrid')
+            div
+              div(class='statLabel') Found
+              div(id='captchaTotal' class='statValue') 0
+            div
+              div(class='statLabel') Rechecked
+              div(id='captchaChecked' class='statValue') 0
+
+      div(class='progressGrid')
+        div(class='progressPanel')
+          div(class='panelTitle') Statuses
+          table
+            tbody(id='statusCounts')
+        div(class='progressPanel')
+          div(class='panelTitle') Captcha statuses
+          table
+            tbody(id='captchaStatusCounts')
+
+      div(id='errorPanel' class='progressPanel hidden')
+        div(class='panelTitle') Last error
+        pre(id='lastError')
+
+    script.
+      const formatDate = value => {
+        if (!value) return '-'
+        const date = new Date(value)
+        if (Number.isNaN(date.getTime())) return value
+        return date.toLocaleString()
+      }
+
+      const percent = (value, total) => {
+        if (!total) return 0
+        return Math.min(100, Math.round((100 * value) / total))
+      }
+
+      const setText = (id, value) => {
+        document.getElementById(id).textContent = value
+      }
+
+      const setBar = (id, value, total) => {
+        document.getElementById(id).style.width = percent(value, total) + '%'
+      }
+
+      const renderCounts = (id, counts) => {
+        const tbody = document.getElementById(id)
+        const entries = Object.entries(counts || {}).sort((a, b) => b[1] - a[1])
+        if (!entries.length) {
+          tbody.innerHTML = '<tr><td class="grey">No data yet</td><td></td></tr>'
+          return
+        }
+        tbody.innerHTML = entries.map(([status, count]) => (
+          '<tr><td>' + status + '</td><td>' + count + '</td></tr>'
+        )).join('')
+      }
+
+      const render = status => {
+        const checked = status.checked || 0
+        const total = status.total || 0
+        const captchaChecked = status.captchaChecked || 0
+        const captchaTotal = status.captchaTotal || 0
+
+        setText('subtitle', status.running ? 'Checking is running' : 'No active checking process')
+        setText('stageBadge', status.stage || 'idle')
+        setText('overallNumbers', checked + ' / ' + total + ' (' + percent(checked, total) + '%)')
+        setText('total', total)
+        setText('checked', checked)
+        setText('startedAt', formatDate(status.startedAt))
+        setText('finishedAt', formatDate(status.finishedAt))
+        setText('captchaNumbers', captchaChecked + ' / ' + captchaTotal + ' (' + percent(captchaChecked, captchaTotal) + '%)')
+        setText('captchaTotal', captchaTotal)
+        setText('captchaChecked', captchaChecked)
+        setBar('overallBar', checked, total)
+        setBar('captchaBar', captchaChecked, captchaTotal)
+        renderCounts('statusCounts', status.statusCounts)
+        renderCounts('captchaStatusCounts', status.captchaStatusCounts)
+
+        const errorPanel = document.getElementById('errorPanel')
+        if (status.lastError) {
+          errorPanel.classList.remove('hidden')
+          setText('lastError', JSON.stringify(status.lastError, null, 2))
+        } else {
+          errorPanel.classList.add('hidden')
+        }
+      }
+
+      let timerId
+
+      const loadStatus = async () => {
+        const response = await fetch('/checking_status')
+        const status = await response.json()
+        render(status)
+        if (!status.running && ['finished', 'failed'].includes(status.stage) && timerId) {
+          clearInterval(timerId)
+        }
+      }
+
+      loadStatus().catch(console.error)
+      timerId = setInterval(() => loadStatus().catch(console.error), 1000)
