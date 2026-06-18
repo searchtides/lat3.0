@@ -31,6 +31,7 @@ const initialCheckingStatus = () => ({
   captchaChecked: 0,
   startedAt: null,
   finishedAt: null,
+  elapsedSeconds: 0,
   lastError: null,
   statusCounts: {},
   captchaStatusCounts: {}
@@ -51,6 +52,16 @@ const updateCheckingStatus = event => {
     if (checkingStatus.statusCounts[event.status] === undefined) checkingStatus.statusCounts[event.status] = 0
     checkingStatus.statusCounts[event.status] += 1
   }
+}
+
+const getCheckingStatus = () => {
+  const status = { ...checkingStatus }
+  if (status.startedAt) {
+    const end = status.finishedAt ? new Date(status.finishedAt).getTime() : Date.now()
+    const start = new Date(status.startedAt).getTime()
+    status.elapsedSeconds = Number.isNaN(start) ? 0 : Math.max(Math.floor((end - start) / 1000), 0)
+  }
+  return status
 }
 
 const wss = new WebSocketServer({ port: 8080 })
@@ -157,7 +168,7 @@ app.post('/start_checking', async (req, res) => {
 
 app.get('/checking_status', (req, res) => {
   res.setHeader('Content-Type', 'application/json')
-  res.end(JSON.stringify(checkingStatus))
+  res.end(JSON.stringify(getCheckingStatus()))
 })
 
 app.get('/checking_progress', (req, res) => {

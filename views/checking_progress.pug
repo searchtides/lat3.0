@@ -27,6 +27,9 @@ html
               div(class='statLabel') Checked
               div(id='checked' class='statValue') 0
             div
+              div(class='statLabel') Elapsed
+              div(id='elapsed' class='statValue smallStat') 00:00:00
+            div
               div(class='statLabel') Started
               div(id='startedAt' class='statValue smallStat') -
             div
@@ -74,6 +77,14 @@ html
         return Math.min(100, Math.round((100 * value) / total))
       }
 
+      const formatDuration = seconds => {
+        const value = Math.max(Number(seconds) || 0, 0)
+        const hours = Math.floor(value / 3600)
+        const minutes = Math.floor((value % 3600) / 60)
+        const rest = value % 60
+        return [hours, minutes, rest].map(x => String(x).padStart(2, '0')).join(':')
+      }
+
       const setText = (id, value) => {
         document.getElementById(id).textContent = value
       }
@@ -105,6 +116,7 @@ html
         setText('overallNumbers', checked + ' / ' + total + ' (' + percent(checked, total) + '%)')
         setText('total', total)
         setText('checked', checked)
+        setText('elapsed', formatDuration(status.elapsedSeconds))
         setText('startedAt', formatDate(status.startedAt))
         setText('finishedAt', formatDate(status.finishedAt))
         setText('captchaNumbers', captchaChecked + ' / ' + captchaTotal + ' (' + percent(captchaChecked, captchaTotal) + '%)')
