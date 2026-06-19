@@ -30,8 +30,14 @@ html
               div(class='statLabel') Elapsed
               div(id='elapsed' class='statValue smallStat') 00:00:00
             div
+              div(class='statLabel') No progress
+              div(id='noProgress' class='statValue smallStat') 00:00:00
+            div
               div(class='statLabel') Started
               div(id='startedAt' class='statValue smallStat') -
+            div
+              div(class='statLabel') Last progress
+              div(id='lastProgressAt' class='statValue smallStat') -
             div
               div(class='statLabel') Finished
               div(id='finishedAt' class='statValue smallStat') -
@@ -117,7 +123,9 @@ html
         setText('total', total)
         setText('checked', checked)
         setText('elapsed', formatDuration(status.elapsedSeconds))
+        setText('noProgress', formatDuration(status.noProgressSeconds))
         setText('startedAt', formatDate(status.startedAt))
+        setText('lastProgressAt', formatDate(status.lastProgressAt))
         setText('finishedAt', formatDate(status.finishedAt))
         setText('captchaNumbers', captchaChecked + ' / ' + captchaTotal + ' (' + percent(captchaChecked, captchaTotal) + '%)')
         setText('captchaTotal', captchaTotal)

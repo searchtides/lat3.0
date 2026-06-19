@@ -5,6 +5,8 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
 const configuredCaptchaConcurrency = parseInt(process.env.CAPTCHA_CONCURRENCY || '5')
 const CAPTCHA_CONCURRENCY = Number.isNaN(configuredCaptchaConcurrency) ? 5 : Math.max(configuredCaptchaConcurrency, 1)
+const configuredCaptchaRowTimeout = parseInt(process.env.CAPTCHA_ROW_TIMEOUT || '90000')
+const CAPTCHA_ROW_TIMEOUT = Number.isNaN(configuredCaptchaRowTimeout) ? 90000 : Math.max(configuredCaptchaRowTimeout, 1)
 
 const logRowError = (type, row, i, chunkIndex, e) => {
   console.error(JSON.stringify({
@@ -34,6 +36,24 @@ const runSeq = async fns => {
 
 const emitProgress = (onProgress, event) => {
   if (onProgress) onProgress(event)
+}
+
+const withTimeout = async (promise, timeout, message) => {
+  let timer
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((resolve, reject) => {
+        timer = setTimeout(() => {
+          const error = new Error(message)
+          error.code = 'ETIMEDOUT'
+          reject(error)
+        }, timeout)
+      })
+    ])
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 const genFns = (chunks, onProgress) => {
@@ -69,22 +89,30 @@ async function checkStatus (rows, onProgress) {
   let ncs = []
   if (cs.length) {
     const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
-    fns = _.chunk(cs, CAPTCHA_CONCURRENCY).map((chunk, j) => async () => {
-      return await Promise.all(chunk.map(async (row, i) => {
-        let status
-        try {
-          status = await check.statusUnderCaptcha(browser, row)
-        } catch (e) {
-          logRowError('checker.captcha.error', row, i, j, e)
-          status = 'UNABLE TO CRAWL'
-        }
-        emitProgress(onProgress, { stage: 'captcha', captchaChecked: 1, status })
-        return { ...row, status }
-      }))
-    })
-    ncs = await runSeq(fns)
-    console.log('resolved captcha links ' + ncs.length)
-    await browser.close()
+    try {
+      fns = _.chunk(cs, CAPTCHA_CONCURRENCY).map((chunk, j) => async () => {
+        return await Promise.all(chunk.map(async (row, i) => {
+          let status
+          try {
+            status = await withTimeout(
+              check.statusUnderCaptcha(browser, row),
+              CAPTCHA_ROW_TIMEOUT,
+              'captcha row timeout'
+            )
+          } catch (e) {
+            logRowError('checker.captcha.error', row, i, j, e)
+            status = 'UNABLE TO CRAWL'
+          }
+          emitProgress(onProgress, { stage: 'captcha', captchaChecked: 1, status })
+          return { ...row, status }
+        }))
+      })
+      ncs = await runSeq(fns)
+      console.log('resolved captcha links ' + ncs.length)
+    } finally {
+      await withTimeout(browser.close(), 10000, 'captcha browser close timeout')
+        .catch(e => logRowError('checker.captcha.browser.close.error', {}, undefined, undefined, e))
+    }
   }
   emitProgress(onProgress, { stage: 'finished', total: rows.length })
   return ys.concat(ncs)

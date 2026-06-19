@@ -2,6 +2,7 @@ const _ = require('lodash')
 const escapeStringRegexp = require('regex-escape')
 const axios = require('axios')
 const TIMEOUT = 60000
+const CLOSE_TIMEOUT = 5000
 const userAgent = 'Mozilla/5.0 (Linux; Android 10; SM-A205U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Mobile Safari/537.36.'
 
 const logStatusError = (h, i, e) => {
@@ -28,7 +29,10 @@ async function statusUnderCaptcha (browser, h) {
   } catch (e) {
     return 'UNABLE TO CRAWL'
   } finally {
-    await page.close()
+    await Promise.race([
+      page.close(),
+      new Promise(resolve => setTimeout(resolve, CLOSE_TIMEOUT))
+    ])
   }
 }
 

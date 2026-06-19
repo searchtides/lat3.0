@@ -32,6 +32,9 @@ const initialCheckingStatus = () => ({
   startedAt: null,
   finishedAt: null,
   elapsedSeconds: 0,
+  lastActivityAt: null,
+  lastProgressAt: null,
+  noProgressSeconds: 0,
   lastError: null,
   statusCounts: {},
   captchaStatusCounts: {}
@@ -40,11 +43,14 @@ const initialCheckingStatus = () => ({
 let checkingStatus = initialCheckingStatus()
 
 const updateCheckingStatus = event => {
+  const now = new Date().toISOString()
+  checkingStatus.lastActivityAt = now
   if (event.total !== undefined) checkingStatus.total = event.total
   if (event.stage) checkingStatus.stage = event.stage
   if (event.checked) checkingStatus.checked += event.checked
   if (event.captchaTotal !== undefined) checkingStatus.captchaTotal = event.captchaTotal
   if (event.captchaChecked) checkingStatus.captchaChecked += event.captchaChecked
+  if (event.checked || event.captchaChecked || event.status) checkingStatus.lastProgressAt = now
   if (event.status && event.stage === 'captcha') {
     if (checkingStatus.captchaStatusCounts[event.status] === undefined) checkingStatus.captchaStatusCounts[event.status] = 0
     checkingStatus.captchaStatusCounts[event.status] += 1
@@ -60,6 +66,8 @@ const getCheckingStatus = () => {
     const end = status.finishedAt ? new Date(status.finishedAt).getTime() : Date.now()
     const start = new Date(status.startedAt).getTime()
     status.elapsedSeconds = Number.isNaN(start) ? 0 : Math.max(Math.floor((end - start) / 1000), 0)
+    const progressStart = new Date(status.lastProgressAt || status.startedAt).getTime()
+    status.noProgressSeconds = Number.isNaN(progressStart) ? 0 : Math.max(Math.floor((end - progressStart) / 1000), 0)
   }
   return status
 }
@@ -135,12 +143,15 @@ app.post('/start_checking', async (req, res) => {
   const rows = req.body.rows
   const callback = req.body.callback
   const proceed = req.body.proceed
+  const now = new Date().toISOString()
   checkingStatus = {
     ...initialCheckingStatus(),
     running: true,
     stage: 'checking',
     total: rows.length,
-    startedAt: new Date().toISOString()
+    startedAt: now,
+    lastActivityAt: now,
+    lastProgressAt: now
   }
   res.send('checking started')
   try {
@@ -149,10 +160,12 @@ app.post('/start_checking', async (req, res) => {
     if (proceed) url += '&proceed=1'
     checkingStatus.stage = 'callback'
     await axios.post(url, { payload: result }, callbackPostConfig)
+    checkingStatus.lastActivityAt = new Date().toISOString()
     checkingStatus.running = false
     checkingStatus.stage = 'finished'
     checkingStatus.finishedAt = new Date().toISOString()
   } catch (e) {
+    checkingStatus.lastActivityAt = new Date().toISOString()
     checkingStatus.running = false
     checkingStatus.stage = 'failed'
     checkingStatus.finishedAt = new Date().toISOString()
